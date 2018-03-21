@@ -22,8 +22,9 @@ namespace Lyre
             InitializeComponent();
         }
 
-        public Wer preferences; // preferences object
+        private Wer preferences; // preferences object
         private string filePreferences = "preferences.json";
+      
         private Panel ccContainer;
         private Panel ccTopBar;
         private Panel ccDownloadsContainer;
@@ -33,12 +34,42 @@ namespace Lyre
         private Panel ccFormClose;
         private Panel ccDownloadsDirectory;
         private Label ccHint;
+        private Panel ccSettings;
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            loadPreferences();
             InitComponents();
+            loadSources();
             ResizeComponents();
+        }
+
+        private void loadSources()
+        {
+            preferences = new Wer();
+            loadJSON(filePreferences, ref preferences);
+            loadJSON(Wer.filenameHistory, ref Shared.history);
+            LinkedList<string> urls = new LinkedList<string>();
+            loadJSON(Wer.filenameDlQueue, ref urls);
+            foreach(string s in urls)
+            {
+                newDownload(s);
+            }
+        }
+
+        private void saveSources()
+        {
+            saveJSON(filePreferences, preferences);
+            saveJSON(Wer.filenameHistory, Shared.history);
+
+            LinkedList<string> urls = new LinkedList<string>();
+            foreach (DownloadContainer dc in DownloadContainer.getDownloadsAccess())
+            {
+                if (dc.isFinished() == false)
+                {
+                    urls.AddLast(dc.getURL());
+                }
+            }
+            saveJSON(Wer.filenameDlQueue, urls);
         }
 
         private void InitComponents()
@@ -73,6 +104,8 @@ namespace Lyre
             ccContainer.Controls.Add(ccDownloadsContainer);
             ccDownloadsContainer.BackColor = Wer.colorForeground;
             ccDownloadsContainer.AutoScroll = true;
+            ccDownloadsContainer.KeyDown += Paste_KeyDown;
+            ccDownloadsContainer.KeyUp += Paste_KeyUp;
 
             ccFormMinimize = new Panel();
             ccFormMinimize.Parent = ccTopBar;
@@ -117,6 +150,21 @@ namespace Lyre
             ccHint.Text = "ALPHA preview : Paste Youtube links anywhere, really ...";
             ccHint.ForeColor = Color.White;
             ccHint.BackColor = Wer.colorBackground;
+
+            ccSettings = new Panel();
+            ccSettings.Parent = ccTopBar;
+            ccTopBar.Controls.Add(ccSettings);
+            ccSettings.Cursor = Cursors.Hand;
+            ccSettings.BackgroundImageLayout = ImageLayout.Zoom;
+            ccSettings.BackgroundImage = getImage(Path.Combine(Wer.resourcesDirectory, Wer.IMG_Settings));
+            ccSettings.BackColor = ccTopBar.BackColor;
+            ccSettings.Click += CcSettings_Click;
+
+        }
+
+        private void CcSettings_Click(object sender, EventArgs e)
+        {
+            // Implement settings
         }
 
         private void CcDownloadsDirectory_Click(object sender, EventArgs e)
@@ -184,11 +232,16 @@ namespace Lyre
 
             ccHint.Top = barMargin;
             ccHint.Left = ccDownloadsDirectory.Left + ccDownloadsDirectory.Width + barMargin;
-            ccHint.Width = 500;
+            ccHint.Width = 0; // 500
             ccHint.Height = ccFormClose.Height;
 
+            ccSettings.Top = barMargin;
+            ccSettings.Left = ccHint.Left + ccHint.Width + barMargin;
+            ccSettings.Width = ccDownloadsDirectory.Width;
+            ccSettings.Height = ccDownloadsDirectory.Height;
 
-            if (DownloadContainer.downloads.Count > 0)
+
+            if (DownloadContainer.getDownloadsAccess().Count > 0)
             {
                 resizeDcMain();
             }
@@ -198,11 +251,18 @@ namespace Lyre
 
         private void resizeDcMain()
         {
-            dcMain = DownloadContainer.downloads.First.Value;
-            dcMain.Top = 30;
-            dcMain.Left = 50;
-            dcMain.Width = ccDownloadsContainer.Width - (dcMain.Left * 2);
-            dcMain.Height = 100;
+            try
+            {
+                dcMain = DownloadContainer.getDownloadsAccess().First.Value;
+                dcMain.Top = 30;
+                dcMain.Left = 50;
+                dcMain.Width = ccDownloadsContainer.Width - (dcMain.Left * 2);
+                dcMain.Height = 100;
+            }
+            catch(Exception ex)
+            {
+
+            }
         }
 
         private void Form1_MouseMove(object sender, MouseEventArgs e)
@@ -258,7 +318,7 @@ namespace Lyre
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            savePreferences();
+            saveSources();
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
@@ -280,8 +340,23 @@ namespace Lyre
             {
                 // queue download url-s
                 string clipboardString = Clipboard.GetText();
-                string[] links = clipboardString.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                foreach(string l in links)
+                LinkedList<string> hits = new LinkedList<string>();
+                string pattern = "https://www.youtube.com/watch?v=";
+                int counter = 0;
+                while (true)
+                {
+                    int index = clipboardString.IndexOf(pattern);
+                    if (index == -1)
+                    {
+                        break;
+                    }
+                    string hit = clipboardString.Substring(index, pattern.Length + 11); // youtube video_IDs are 11 chars long
+                    hits.AddLast(hit);
+                    clipboardString = clipboardString.Substring(index + pattern.Length + 11);
+                    counter++;
+                }
+                //string[] links = clipboardString.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (string l in hits)
                 {
                     Application.DoEvents();
                     newDownload(l);
@@ -306,7 +381,7 @@ namespace Lyre
         private void newDownload(string url)
         {
             DownloadContainer newDc = new DownloadContainer();
-            if (DownloadContainer.downloads.Count == 1)
+            if (DownloadContainer.getDownloadsAccess().Count == 1)
             {
                 dcMain = newDc;
                 dcMain.Parent = ccDownloadsContainer;
@@ -323,33 +398,30 @@ namespace Lyre
             }
         }
 
-        private void loadPreferences()
+        private void loadJSON<T>(string path, ref T obj)
         {
-            if (File.Exists(filePreferences))
+            if (File.Exists(path))
             {
                 try
                 {
-                    //JsonConvert.PopulateObject("", wer);
-                    string fileString = File.ReadAllText(filePreferences);
-                    preferences = JsonConvert.DeserializeObject<Wer>(fileString);
+                    string fileString = File.ReadAllText(path);
+                    obj = JsonConvert.DeserializeObject<T>(fileString);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    preferences = new Wer();
-                    savePreferences();
+                    saveJSON(path, obj);
                 }
             }
             else
             {
-                preferences = new Wer();
-                savePreferences();
+                saveJSON(path, obj);
             }
         }
 
-        public void savePreferences()
+        public void saveJSON<T>(string path, T obj)
         {
-            string jsonString = JsonConvert.SerializeObject(preferences, Formatting.Indented);
-            File.WriteAllText("preferences.json", jsonString);
+            string jsonString = JsonConvert.SerializeObject(obj, Formatting.Indented);
+            File.WriteAllText(path, jsonString);
         }
     }
 }

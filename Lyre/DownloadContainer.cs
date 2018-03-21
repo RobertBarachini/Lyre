@@ -21,6 +21,7 @@ using TagLib;
 //
 // - output files to a temporary folder while downloading and processing, then MOVE them
 // - solve youtube-dl filename output (ignoring special characters, umlauts, ...) - file not found exception
+// - check if the download and encoding has been a success - check at event "Process.Exit"
 
 // kako bi naredil da ko se klice download ne caka na svoj vrstni red s queue..
 // static timer ki gleda kateri je prvi DownloadContainer v downloadsQueue in šele nato pokliče download()
@@ -28,14 +29,40 @@ using TagLib;
 class DownloadContainer : Panel
 {
     private static object downloadsLock = new object();
-    public static LinkedList<DownloadContainer> downloads = new LinkedList<DownloadContainer>();
+    private static LinkedList<DownloadContainer> downloads = new LinkedList<DownloadContainer>();
     private static object downloadsQueueLock = new object();
-    public static LinkedList<DownloadContainer> downloadsQueue = new LinkedList<DownloadContainer>();
+    private static LinkedList<DownloadContainer> downloadsQueue = new LinkedList<DownloadContainer>();
     private static object activeProcessesLock = new object();
-    public static int activeProcesses = 0;
-    public int maxActiveProcesses = 3; // 3
+    private static int activeProcesses = 0;
+    private static int maxActiveProcesses = 3; // 3
     private LinkedListNode<DownloadContainer> downloadNode;
-    public static System.Windows.Forms.Timer downloadsHandler = new System.Windows.Forms.Timer();
+    private static System.Windows.Forms.Timer downloadsHandler = new System.Windows.Forms.Timer();
+
+    public string getURL()
+    {
+        return url.ToString();
+    }
+
+    public int getActiveProcessesAccess()
+    {
+        lock(activeProcessesLock)
+        {
+            return activeProcesses;
+        }
+    }
+
+    public static LinkedList<DownloadContainer> getDownloadsAccess()
+    {
+        lock(downloadsLock)
+        {
+            return downloads;
+        }
+    }
+
+    public bool isFinished()
+    {
+        return finished;
+    }
 
     private Uri url;
     private PictureBox thumbnail;
@@ -43,13 +70,13 @@ class DownloadContainer : Panel
     private Label progressLabel;
     private Label title;
     private Panel cancelButton;
-    public double progress;
-    public StringBuilder processOutput;
+    private double progress;
+    private  StringBuilder processOutput;
     private Process singleDownload;
     private JObject infoJSON;
-    public string videoID;
-    public string destinationDirectory;
-    public string imageExtension;
+    private string videoID;
+    private string destinationDirectory;
+    private string imageExtension;
     private bool instanceRemoved;
     private bool downloadStarted;
     private bool canConvert;
@@ -57,6 +84,7 @@ class DownloadContainer : Panel
     private System.Windows.Forms.Timer animateGeneral;
     private double previousProgress;
     private RichTextBox outputLog;
+    private bool finished = false;
 
     public DownloadContainer()
     {
@@ -115,13 +143,13 @@ class DownloadContainer : Panel
                     }
                 }
 
-                GC.Collect();
+                //GC.Collect();
                 downloadsHandler.Start();
             }
         }
     }
 
-    public void updateProgress(double newProgress)
+    private void updateProgress(double newProgress)
     {
         try
         {
@@ -162,7 +190,7 @@ class DownloadContainer : Panel
         }
     }
 
-    public string getVideoID(string url)
+    private string getVideoID(string url)
     {
         int index = url.IndexOf("watch?v=");
         if (index < 0)
@@ -287,6 +315,7 @@ class DownloadContainer : Panel
             {
                 this.thumbnail.Invoke((MethodInvoker)delegate
                 {
+                    thumbnail.Image.Dispose();
                     thumbnail.Image = getImageFrame();
                 });
             }
@@ -448,6 +477,7 @@ class DownloadContainer : Panel
 
     private void SingleDownload_Exited(object sender, EventArgs e)
     {
+        finished = true;
         animateProgress.Stop();
         updateProgress(1);
 
@@ -473,9 +503,20 @@ class DownloadContainer : Panel
         try
         {
             System.IO.File.Move(Path.Combine(Wer.tempDirectoy, videoID) + ".mp3", Path.Combine(destinationDirectory, infoJSON.GetValue("fulltitle").ToString() + ".mp3"));
-
         }
         catch (Exception ex) { }
+
+        HistoryItem hi = new HistoryItem();
+        //EXAMPLE : Path.GetFullPath((new Uri(absolute_path)).LocalPath);
+        hi.path_output = Path.GetFullPath(Path.Combine(destinationDirectory, infoJSON.GetValue("fulltitle").ToString() + ".mp3"));
+        hi.path_thumbnail = Path.GetFullPath(Path.Combine(Wer.tempDirectoy, videoID + imageExtension));
+        hi.title = infoJSON.GetValue("fulltitle").ToString();
+        hi.url = infoJSON.GetValue("webpage_url").ToString();
+        hi.time_created_UTC = DateTime.UtcNow;
+        lock (Shared.lockHistory)
+        {
+            Shared.history.AddFirst(hi);
+        }
 
         this.progressLabel.Invoke((MethodInvoker)delegate
         {
@@ -532,7 +573,7 @@ class DownloadContainer : Panel
         this.Dispose();
     }
 
-    public string getExtension(string input)
+    private string getExtension(string input)
     {
         int index = input.LastIndexOf(".");
         if (index < 0)
@@ -548,7 +589,7 @@ class DownloadContainer : Panel
     // poglej ali je kreiran JSON in potem ali so ustvarjene ustrezne datoteke
     // kasneje naredi funkcije ki nastavljajo title/thumbnail in v tem primeru ce
     // video ze obstaja v tempu nastavi vrednosti UI-ja in ustrezno zakljuci process/thread
-    public bool videoExists()
+    private bool videoExists()
     {
         if (System.IO.File.Exists(Path.Combine(Wer.tempDirectoy, ".info.json")))
         {
@@ -563,7 +604,7 @@ class DownloadContainer : Panel
     private bool canAnimateThumbnail = true;
     private int perSide = 1; // 8
     private Color c1 = Wer.colorAccent1;
-    public Image getImageFrame()
+    private Image getImageFrame()
     {
         for (int i = 0; i < 100; i++)
         {
@@ -592,7 +633,7 @@ class DownloadContainer : Panel
         return im;
     }
 
-    public static Image getImage(string path)
+    private static Image getImage(string path)
     {
         int counter = 0;
         while (System.IO.File.Exists(path) == false)

@@ -48,4 +48,8 @@ public class Wer // Preferences / Settings / Defaults
     public static string FormButtons_CloseSmall = "FormButtons_CloseSmall.png";
     public static string FormButtons_CloseBig = "FormButtons_CloseBig.png";
     public static string IMG_Directory = "IMG_Directory.png";
+    public static string IMG_Settings = "IMG_Settings.png";
+    //[JsonProperty]
+    public static string filenameHistory = "history.json";
+    public static string filenameDlQueue = "downloadsQueue.json";
 }
