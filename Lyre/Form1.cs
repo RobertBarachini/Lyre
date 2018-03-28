@@ -1,4 +1,6 @@
-﻿//42
+﻿//42 ; 
+// by Robert Barachini
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,6 +14,9 @@ using System.Windows.Forms;
 using Newtonsoft.Json;
 using System.IO;
 using System.Threading;
+using System.Reflection;
+using System.Diagnostics;
+using System.Net;
 
 namespace Lyre
 {
@@ -22,9 +27,9 @@ namespace Lyre
             InitializeComponent();
         }
 
-        private Wer preferences; // preferences object
-        private string filePreferences = "preferences.json";
+        private Preferences preferences; // preferences object
       
+        // Controls
         private Panel ccContainer;
         private Panel ccTopBar;
         private Panel ccDownloadsContainer;
@@ -35,41 +40,159 @@ namespace Lyre
         private Panel ccDownloadsDirectory;
         private Label ccHint;
         private Panel ccSettings;
+        private RichTextBox ccResourceDownloaderLog;
+
+        private object resourcesMissingCountLock = new object();
+        private int resourcesMissingCount;
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            Form1_Load_Call();
+        }
+
+        private void Form1_Load_Call()
+        {
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+            resourcesMissingCount = getResourcesMissingCount();
             InitComponents();
             loadSources();
             ResizeComponents();
+            this.Show();
+            if (resourcesMissingCount > 0)
+            {
+                getResources();
+            }
+        }
+
+        private int getResourcesMissingCount()
+        {
+            int count = 0;
+            foreach(OnlineResource onR in OnlineResource.resourcesList)
+            {
+                if(File.Exists(onR.path) == false)
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        private void getResources()
+        {
+            foreach(OnlineResource onR in OnlineResource.resourcesList)
+            {
+                if(File.Exists(onR.path) == false)
+                {
+                    ccResourceDownloaderLog.AppendText("Downloading missing resource" + Environment.NewLine);
+                    ccResourceDownloaderLog.AppendText("Credit: " + onR.credit + Environment.NewLine);
+                    ccResourceDownloaderLog.AppendText("URL: " + onR.url + Environment.NewLine + Environment.NewLine);
+                    // fetch the missing file from the web
+                    DownloaderAsync newDA = new DownloaderAsync(onR.path);
+                    setDownloaderEvents(newDA);
+                    newDA.download(onR.url);
+                }
+            }
+        }
+
+        private void setDownloaderEvents(DownloaderAsync whichToSet)
+        {
+            whichToSet.MyDownloadCompleted += DA_MyDownloadCompleted;
+            //whichToSet.MyDownloadChanged += DA_MyDownloadChanged; // not needed right now
+        }
+
+        private void DA_MyDownloadChanged(DownloaderAsync sender, DownloadProgressChangedEventArgs e)
+        {
+            double progress = (double)e.BytesReceived / (double)e.TotalBytesToReceive;
+            try
+            {
+                ccResourceDownloaderLog.AppendText(sender.filename + " : [PROGRESS] " + (progress * 100).ToString("0.000") + " % " + Environment.NewLine);
+                ccResourceDownloaderLog.ScrollToCaret();
+            }
+            catch (Exception ex) { }
+        }
+
+        private void DA_MyDownloadCompleted(DownloaderAsync sender, DownloadDataCompletedEventArgs e)
+        {
+            ccResourceDownloaderLog.AppendText(sender.filename + " : [PROGRESS] Done" + Environment.NewLine);
+            ccResourceDownloaderLog.AppendText(sender.filename + " : " + sender.url.ToString() + ":" + Environment.NewLine);
+            ccResourceDownloaderLog.AppendText(sender.filename + " : [BYTES SIZE] " + sender.totalBytesToReceive.ToString() + Environment.NewLine);
+            ccResourceDownloaderLog.AppendText(sender.filename + " : [TIME NEEDED] (ms): " + Math.Round(sender.timeNeeded.TotalMilliseconds) + Environment.NewLine + Environment.NewLine);
+            ccResourceDownloaderLog.ScrollToCaret();
+            try
+            {
+                resourcesMissingCount--;
+                string path = "";
+                string senderPath = sender.outputPath;
+                if (senderPath.Contains("\\"))
+                {
+                    path = senderPath.Substring(0, senderPath.LastIndexOf("\\"));
+                }
+                if (path.Length > 0)
+                {
+                    Directory.CreateDirectory(path);
+                }
+                File.Create(sender.outputPath).Close();
+                File.WriteAllBytes(sender.outputPath, sender.data);
+            }
+            catch (Exception ex)
+            {
+                ccResourceDownloaderLog.AppendText(sender.filename + Environment.NewLine + ex.ToString() + Environment.NewLine + Environment.NewLine);
+            }
+
+            lock(resourcesMissingCountLock)
+            {
+                if(resourcesMissingCount == 0)
+                {
+                    ccResourceDownloaderLog.AppendText("Press 'ESCAPE' button to restart the app ..." + Environment.NewLine);
+                    ccResourceDownloaderLog.ScrollToCaret();
+                }
+            }
         }
 
         private void loadSources()
         {
-            preferences = new Wer();
-            loadJSON(filePreferences, ref preferences);
-            loadJSON(Wer.filenameHistory, ref Shared.history);
+            preferences = new Preferences();
+            loadJSON(Shared.filePreferences, ref preferences);
+            loadJSON(Shared.filenameHistory, ref Shared.history);
+            loadDlQueue();
+            
+        }
+
+        private void loadDlQueue()
+        {
             LinkedList<string> urls = new LinkedList<string>();
-            loadJSON(Wer.filenameDlQueue, ref urls);
-            foreach(string s in urls)
+            loadJSON(Shared.filenameDlQueue, ref urls);
+            if (resourcesMissingCount == 0) // first download resources and then populate and resume downloads
             {
-                newDownload(s);
+                foreach (string s in urls)
+                {
+                    newDownload(s);
+                }
             }
         }
 
         private void saveSources()
         {
-            saveJSON(filePreferences, preferences);
-            saveJSON(Wer.filenameHistory, Shared.history);
+            saveJSON(Shared.filePreferences, preferences);
+            saveJSON(Shared.filenameHistory, Shared.history);
 
-            LinkedList<string> urls = new LinkedList<string>();
-            foreach (DownloadContainer dc in DownloadContainer.getDownloadsAccess())
+            // if files ar missing and are being rebuilt downloads queue is not activated
+            // therefore no objects are created and without the condition we overwrite
+            // valid downloads in the queue
+            if (resourcesMissingCount != -1)
             {
-                if (dc.isFinished() == false)
+                LinkedList<string> urls = new LinkedList<string>();
+                foreach (DownloadContainer dc in DownloadContainer.getDownloadsAccess())
                 {
-                    urls.AddLast(dc.getURL());
+                    if (dc.isFinished() == false)
+                    {
+                        urls.AddLast(dc.getURL());
+                    }
                 }
+                saveJSON(Shared.filenameDlQueue, urls);
             }
-            saveJSON(Wer.filenameDlQueue, urls);
         }
 
         private void InitComponents()
@@ -77,32 +200,32 @@ namespace Lyre
             this.Text = "Lyre - A music app by Robert Barachini";
             this.FormClosing += Form1_FormClosing;
             this.DoubleBuffered = true;
-            this.Width = Wer.formWidth;
-            this.Height = Wer.formHeight;
-            this.Top = Wer.formTop;
-            this.Height = Wer.formHeight;
+            this.Width = Preferences.formWidth;
+            this.Height = Preferences.formHeight;
+            this.Top = Preferences.formTop;
+            this.Height = Preferences.formHeight;
             this.SizeChanged += Form1_SizeChanged;
             this.KeyDown += Paste_KeyDown;
             this.KeyUp += Paste_KeyUp;
-            this.BackColor = Wer.colorForeground;
+            this.BackColor = Preferences.colorForeground;
             //this.FormBorderStyle = FormBorderStyle.None;
             this.MouseMove += Form1_MouseMove;
 
             ccContainer = new Panel();
             ccContainer.Parent = this;
             this.Controls.Add(ccContainer);
-            ccContainer.BackColor = Wer.colorForeground;
+            ccContainer.BackColor = Preferences.colorForeground;
             ccContainer.Dock = DockStyle.Fill;
 
             ccTopBar = new Panel();
             ccTopBar.Parent = ccContainer;
             ccContainer.Controls.Add(ccTopBar);
-            ccTopBar.BackColor = Wer.colorBackground;
+            ccTopBar.BackColor = Preferences.colorBackground;
 
             ccDownloadsContainer = new Panel();
             ccDownloadsContainer.Parent = ccContainer;
             ccContainer.Controls.Add(ccDownloadsContainer);
-            ccDownloadsContainer.BackColor = Wer.colorForeground;
+            ccDownloadsContainer.BackColor = Preferences.colorForeground;
             ccDownloadsContainer.AutoScroll = true;
             ccDownloadsContainer.KeyDown += Paste_KeyDown;
             ccDownloadsContainer.KeyUp += Paste_KeyUp;
@@ -112,7 +235,7 @@ namespace Lyre
             ccTopBar.Controls.Add(ccFormMinimize);
             ccFormMinimize.Cursor = Cursors.Hand;
             ccFormMinimize.BackgroundImageLayout = ImageLayout.Zoom;
-            ccFormMinimize.BackgroundImage = getImage(Path.Combine(Wer.resourcesDirectory, Wer.FormButtons_Minimize));
+            ccFormMinimize.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_Minimize));
             ccFormMinimize.BackColor = ccTopBar.BackColor;
             ccFormMinimize.Click += CcFormMinimize_Click;
 
@@ -121,7 +244,7 @@ namespace Lyre
             ccTopBar.Controls.Add(ccFormMaximize);
             ccFormMaximize.Cursor = Cursors.Hand;
             ccFormMaximize.BackgroundImageLayout = ImageLayout.Zoom;
-            ccFormMaximize.BackgroundImage = getImage(Path.Combine(Wer.resourcesDirectory, Wer.FormButtons_Maximize));
+            ccFormMaximize.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_Maximize));
             ccFormMaximize.BackColor = ccTopBar.BackColor;
             ccFormMaximize.Click += CcFormMaximize_Click;
 
@@ -130,7 +253,7 @@ namespace Lyre
             ccTopBar.Controls.Add(ccFormClose);
             ccFormClose.Cursor = Cursors.Hand;
             ccFormClose.BackgroundImageLayout = ImageLayout.Zoom;
-            ccFormClose.BackgroundImage = getImage(Path.Combine(Wer.resourcesDirectory, Wer.FormButtons_CloseBig));
+            ccFormClose.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_CloseBig));
             ccFormClose.BackColor = ccTopBar.BackColor;
             ccFormClose.Click += CcFormClose_Click;
 
@@ -139,27 +262,65 @@ namespace Lyre
             ccTopBar.Controls.Add(ccDownloadsDirectory);
             ccDownloadsDirectory.Cursor = Cursors.Hand;
             ccDownloadsDirectory.BackgroundImageLayout = ImageLayout.Zoom;
-            ccDownloadsDirectory.BackgroundImage = getImage(Path.Combine(Wer.resourcesDirectory, Wer.IMG_Directory));
+            ccDownloadsDirectory.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Directory));
             ccDownloadsDirectory.BackColor = ccTopBar.BackColor;
             ccDownloadsDirectory.Click += CcDownloadsDirectory_Click;
 
             ccHint = new Label();
             ccHint.Parent = ccTopBar;
             ccTopBar.Controls.Add(ccHint);
-            ccHint.Font = new Font(Wer.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
+            ccHint.Font = new Font(Preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
             ccHint.Text = "ALPHA preview : Paste Youtube links anywhere, really ...";
             ccHint.ForeColor = Color.White;
-            ccHint.BackColor = Wer.colorBackground;
+            ccHint.BackColor = Preferences.colorBackground;
 
             ccSettings = new Panel();
             ccSettings.Parent = ccTopBar;
             ccTopBar.Controls.Add(ccSettings);
             ccSettings.Cursor = Cursors.Hand;
             ccSettings.BackgroundImageLayout = ImageLayout.Zoom;
-            ccSettings.BackgroundImage = getImage(Path.Combine(Wer.resourcesDirectory, Wer.IMG_Settings));
+            ccSettings.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Settings));
             ccSettings.BackColor = ccTopBar.BackColor;
             ccSettings.Click += CcSettings_Click;
 
+            ccResourceDownloaderLog = new RichTextBox();
+            ccResourceDownloaderLog.Parent = ccDownloadsContainer;
+            ccDownloadsContainer.Controls.Add(ccResourceDownloaderLog);
+            ccResourceDownloaderLog.BorderStyle = BorderStyle.None;
+            ccResourceDownloaderLog.Dock = DockStyle.Fill;
+            ccResourceDownloaderLog.BackColor = Preferences.colorBackground;
+            ccResourceDownloaderLog.ForeColor = Color.White;
+            ccResourceDownloaderLog.Font = new Font(Preferences.fontDefault.FontFamily, 16, GraphicsUnit.Pixel);
+            ccResourceDownloaderLog.ReadOnly = true;
+            ccResourceDownloaderLog.KeyDown += CcResourceDownloaderLog_KeyDown;
+            ccResourceDownloaderLog.LinkClicked += CcResourceDownloaderLog_LinkClicked;
+            if(resourcesMissingCount == 0)
+            {
+                ccResourceDownloaderLog.Visible = false;
+            }
+        }
+
+        private void CcResourceDownloaderLog_LinkClicked(object sender, LinkClickedEventArgs e)
+        {
+            Process.Start(e.LinkText);
+        }
+
+        private void CcResourceDownloaderLog_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.KeyCode == Keys.Escape)
+            {
+                lock(resourcesMissingCountLock)
+                {
+                    if(resourcesMissingCount == 0)
+                    {
+                        ccResourceDownloaderLog.Visible = false;
+
+                        // Restart the app for the full functionality
+                        resourcesMissingCount = -1;
+                        Application.Restart();
+                    }
+                }
+            }
         }
 
         private void CcSettings_Click(object sender, EventArgs e)
@@ -172,17 +333,17 @@ namespace Lyre
             using (var folderDialog = new FolderBrowserDialog())
             {
                 folderDialog.Description = "Choose future downloads destination directory.";
-                if(Wer.downloadsDirectory.Equals("downloads"))
+                if(Preferences.downloadsDirectory.Equals("downloads"))
                 {
-                    folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Wer.downloadsDirectory);
+                    folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Preferences.downloadsDirectory);
                 }
                 else
                 {
-                    folderDialog.SelectedPath = Wer.downloadsDirectory;
+                    folderDialog.SelectedPath = Preferences.downloadsDirectory;
                 }
                 if (folderDialog.ShowDialog() == DialogResult.OK)
                 {
-                    Wer.downloadsDirectory = folderDialog.SelectedPath;
+                    Preferences.downloadsDirectory = folderDialog.SelectedPath;
                 }
             }
         }
@@ -191,8 +352,8 @@ namespace Lyre
         {
             this.SuspendLayout();
 
-            //Wer.formWidth = this.Width;
-            //Wer.formHeight = this.Height;
+            //Preferences.formWidth = this.Width;
+            //Preferences.formHeight = this.Height;
 
             //ccContainer.Top = 0;
             //ccContainer.Left = 0;
@@ -232,7 +393,7 @@ namespace Lyre
 
             ccHint.Top = barMargin;
             ccHint.Left = ccDownloadsDirectory.Left + ccDownloadsDirectory.Width + barMargin;
-            ccHint.Width = 0; // 500
+            ccHint.Width = 500;
             ccHint.Height = ccFormClose.Height;
 
             ccSettings.Top = barMargin;
@@ -350,12 +511,12 @@ namespace Lyre
                     {
                         break;
                     }
-                    string hit = clipboardString.Substring(index, pattern.Length + 11); // youtube video_IDs are 11 chars long
+                    // youtube video_IDs are currently 11 chars long
+                    string hit = clipboardString.Substring(index, pattern.Length + 11); 
                     hits.AddLast(hit);
                     clipboardString = clipboardString.Substring(index + pattern.Length + 11);
                     counter++;
                 }
-                //string[] links = clipboardString.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string l in hits)
                 {
                     Application.DoEvents();
@@ -387,7 +548,7 @@ namespace Lyre
                 dcMain.Parent = ccDownloadsContainer;
                 resizeDcMain();
             }
-            newDc.download(url, Wer.downloadsDirectory, true);
+            newDc.download(url, Preferences.downloadsDirectory, true);
         }
 
         private void Paste_KeyUp(object sender, KeyEventArgs e)

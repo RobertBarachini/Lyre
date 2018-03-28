@@ -19,9 +19,7 @@ using TagLib;
 //
 //// TODO
 //
-// - output files to a temporary folder while downloading and processing, then MOVE them
-// - solve youtube-dl filename output (ignoring special characters, umlauts, ...) - file not found exception
-// - check if the download and encoding has been a success - check at event "Process.Exit"
+// - check if the download and encoding has been a success - check at event "Process.Exit" = mp3/video exists
 
 // kako bi naredil da ko se klice download ne caka na svoj vrstni red s queue..
 // static timer ki gleda kateri je prvi DownloadContainer v downloadsQueue in šele nato pokliče download()
@@ -143,7 +141,6 @@ class DownloadContainer : Panel
                     }
                 }
 
-                //GC.Collect();
                 downloadsHandler.Start();
             }
         }
@@ -154,7 +151,6 @@ class DownloadContainer : Panel
         try
         {
             int widthSetup = this.Width - thumbnail.Width - this.Left - 75;
-            //this.progress = newProgress;
             this.progressBar.Invoke((MethodInvoker)delegate
             {
                 progressBar.Width = (int)((widthSetup) * newProgress);
@@ -163,7 +159,7 @@ class DownloadContainer : Panel
             {
                 if (newProgress == 1)
                 {
-                    progressLabel.BackColor = Wer.colorAccent3;
+                    progressLabel.BackColor = Preferences.colorAccent3;
                     progressLabel.Text = "Processing ...";
                 }
                 else
@@ -212,13 +208,13 @@ class DownloadContainer : Panel
         progress = 0;
 
         this.DoubleBuffered = true;
-        this.BackColor = Wer.colorBackground;
-        this.Font = Wer.fontDefault;
+        this.BackColor = Preferences.colorBackground;
+        this.Font = Preferences.fontDefault;
 
         thumbnail = new PictureBox();
         thumbnail.Parent = this;
         this.Controls.Add(thumbnail);
-        thumbnail.BackColor = Wer.colorBackground;
+        thumbnail.BackColor = Preferences.colorBackground;
         thumbnail.SizeMode = PictureBoxSizeMode.StretchImage; // Zoom should be used - change thumbnail.Left
         thumbnail.Image = getImageFrame();//getImage("squareAnimation256.gif");
         thumbnail.Cursor = Cursors.Hand;
@@ -227,39 +223,39 @@ class DownloadContainer : Panel
         title = new Label();
         title.Parent = this;
         this.Controls.Add(title);
-        title.Font = Wer.fontDefault;
+        title.Font = Preferences.fontDefault;
         title.Text = "Queued for download ...";
         title.ForeColor = Color.White;
         title.TextAlign = ContentAlignment.TopLeft;
-        title.Font = new Font(Wer.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
+        title.Font = new Font(Preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
 
         progressBar = new Panel();
         progressBar.Parent = this;
         this.Controls.Add(progressBar);
-        progressBar.BackColor = Wer.colorAccent1;
+        progressBar.BackColor = Preferences.colorAccent1;
 
         progressLabel = new Label();
         progressLabel.Parent = progressBar;
         progressBar.Controls.Add(progressLabel);
         progressLabel.Dock = DockStyle.Fill;
         progressLabel.ForeColor = Color.White;
-        progressLabel.BackColor = Wer.colorAccent1;
+        progressLabel.BackColor = Preferences.colorAccent1;
         progressLabel.TextAlign = ContentAlignment.MiddleCenter;
         progressLabel.Text = "";
-        progressLabel.Font = new Font(Wer.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
+        progressLabel.Font = new Font(Preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
 
         outputLog = new RichTextBox();
         outputLog.Parent = this;
         this.Controls.Add(outputLog);
         outputLog.BorderStyle = BorderStyle.None;
-        outputLog.BackColor = Wer.colorForeground;
+        outputLog.BackColor = Preferences.colorForeground;
         outputLog.ForeColor = Color.White;
-        outputLog.Font = new Font(Wer.fontDefault.FontFamily, 14, GraphicsUnit.Pixel);
+        outputLog.Font = new Font(Preferences.fontDefault.FontFamily, 14, GraphicsUnit.Pixel);
 
         cancelButton = new Panel();
         cancelButton.Parent = this;
         this.Controls.Add(cancelButton);
-        cancelButton.BackColor = Wer.colorAccent2;
+        cancelButton.BackColor = Preferences.colorAccent2;
         cancelButton.Cursor = Cursors.Hand;
         cancelButton.Click += CancelButton_Click;
         //cancelButton.BackgroundImage = getImage("squareAnimation64.gif");
@@ -301,11 +297,11 @@ class DownloadContainer : Panel
                 if (sizePercent < -2) // 0
                 {
                     int chosen = r1.Next(0, 4);
-                    if (chosen == 0) { c1 = Wer.colorAccent1; }
-                    if (chosen == 1) { c1 = Wer.colorAccent2; }
-                    if (chosen == 2) { c1 = Wer.colorAccent3; }
-                    if (chosen == 3) { c1 = Wer.colorAccent4; }
-                    //c1 = Wer.colorAccent1;
+                    if (chosen == 0) { c1 = Preferences.colorAccent1; }
+                    if (chosen == 1) { c1 = Preferences.colorAccent2; }
+                    if (chosen == 2) { c1 = Preferences.colorAccent3; }
+                    if (chosen == 3) { c1 = Preferences.colorAccent4; }
+                    //c1 = Preferences.colorAccent1;
                     perSide = r1.Next(1, 9);
                     sizePercent = 0;
                     growing = true;
@@ -342,7 +338,7 @@ class DownloadContainer : Panel
     public void download(string url, string destinationDirectory, bool canConvert)
     {
         this.videoID = getVideoID(url);
-        string path = Path.Combine(Wer.tempDirectoy, videoID + ".info.json");
+        string path = Path.Combine(Preferences.tempDirectoy, videoID + ".info.json");
         if (System.IO.File.Exists(path) && 1 == 2)
         {
             infoJSON = JObject.Parse(System.IO.File.ReadAllText(path));
@@ -354,7 +350,7 @@ class DownloadContainer : Panel
             imageExtension = getExtension(fileURL);
             this.thumbnail.Invoke((MethodInvoker)delegate
             {
-                thumbnail.Image = getImage(Path.Combine(Wer.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
+                thumbnail.Image = getImage(Path.Combine(Preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
             });
             updateProgress(1);
         }
@@ -382,9 +378,9 @@ class DownloadContainer : Panel
     {
         //animateProgress.Start();
 
-        if (Directory.Exists(Wer.tempDirectoy) == false)
+        if (Directory.Exists(Preferences.tempDirectoy) == false)
         {
-            Directory.CreateDirectory(Wer.tempDirectoy);
+            Directory.CreateDirectory(Preferences.tempDirectoy);
         }
         if (Directory.Exists(destinationDirectory) == false)
         {
@@ -398,11 +394,11 @@ class DownloadContainer : Panel
             singleDownload.StartInfo.FileName = @"youtube-dl.exe";
             if (canConvert)
             {
-                arguments = "--extract-audio --audio-format mp3 " + "-o \"" + Path.Combine(Wer.tempDirectoy, videoID + ".%(ext)s"/*, "%(title)s - %(id)s.%(ext)s"*/) + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
+                arguments = "--extract-audio --audio-format mp3 " + "-o \"" + Path.Combine(Preferences.tempDirectoy, videoID + ".%(ext)s"/*, "%(title)s - %(id)s.%(ext)s"*/) + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
             }
             else
             {
-                arguments = "-o \"" + Path.Combine(Wer.tempDirectoy, videoID + ".%(ext)s"/*, "%(title)s - %(id)s.%(ext)s"*/) + "\" " + url + " --write-thumbnail --write-info-json";
+                arguments = "-o \"" + Path.Combine(Preferences.tempDirectoy, videoID + ".%(ext)s"/*, "%(title)s - %(id)s.%(ext)s"*/) + "\" " + url + " --write-thumbnail --write-info-json";
             }
             singleDownload.StartInfo.Arguments = arguments;
             singleDownload.StartInfo.CreateNoWindow = true;
@@ -444,7 +440,7 @@ class DownloadContainer : Panel
             }
             else if (data.Contains("[info]"))
             {
-                string path = Path.Combine(Wer.tempDirectoy, videoID + ".info.json");
+                string path = Path.Combine(Preferences.tempDirectoy, videoID + ".info.json");
                 while (System.IO.File.Exists(path) == false)
                 {
                     Application.DoEvents();
@@ -462,7 +458,7 @@ class DownloadContainer : Panel
                 imageExtension = getExtension(fileURL);
                 this.thumbnail.Invoke((MethodInvoker)delegate
                 {
-                    thumbnail.Image = getImage(Path.Combine(Wer.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
+                    thumbnail.Image = getImage(Path.Combine(Preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
                 });
             }
             else
@@ -492,8 +488,8 @@ class DownloadContainer : Panel
 
         try
         {
-            TagLib.File soundFile = TagLib.File.Create(Path.Combine(Wer.tempDirectoy, videoID + ".mp3"));
-            IPicture albumArt = new Picture(Path.Combine(Wer.tempDirectoy, videoID + imageExtension));
+            TagLib.File soundFile = TagLib.File.Create(Path.Combine(Preferences.tempDirectoy, videoID + ".mp3"));
+            IPicture albumArt = new Picture(Path.Combine(Preferences.tempDirectoy, videoID + imageExtension));
             soundFile.Tag.Pictures = new IPicture[1] { albumArt };
             soundFile.Tag.Comment = videoID;
             soundFile.Save();
@@ -502,14 +498,14 @@ class DownloadContainer : Panel
 
         try
         {
-            System.IO.File.Move(Path.Combine(Wer.tempDirectoy, videoID) + ".mp3", Path.Combine(destinationDirectory, infoJSON.GetValue("fulltitle").ToString() + ".mp3"));
+            System.IO.File.Move(Path.Combine(Preferences.tempDirectoy, videoID) + ".mp3", Path.Combine(destinationDirectory, infoJSON.GetValue("fulltitle").ToString() + ".mp3"));
         }
         catch (Exception ex) { }
 
         HistoryItem hi = new HistoryItem();
         //EXAMPLE : Path.GetFullPath((new Uri(absolute_path)).LocalPath);
         hi.path_output = Path.GetFullPath(Path.Combine(destinationDirectory, infoJSON.GetValue("fulltitle").ToString() + ".mp3"));
-        hi.path_thumbnail = Path.GetFullPath(Path.Combine(Wer.tempDirectoy, videoID + imageExtension));
+        hi.path_thumbnail = Path.GetFullPath(Path.Combine(Preferences.tempDirectoy, videoID + imageExtension));
         hi.title = infoJSON.GetValue("fulltitle").ToString();
         hi.url = infoJSON.GetValue("webpage_url").ToString();
         hi.time_created_UTC = DateTime.UtcNow;
@@ -521,10 +517,10 @@ class DownloadContainer : Panel
         this.progressLabel.Invoke((MethodInvoker)delegate
         {
             this.progressLabel.Text = "✔";
-            progressLabel.BackColor = Wer.colorAccent4;
+            progressLabel.BackColor = Preferences.colorAccent4;
         });
 
-        System.IO.File.WriteAllText(Path.Combine(Wer.tempDirectoy, videoID) + ".txt", processOutput.ToString());
+        System.IO.File.WriteAllText(Path.Combine(Preferences.tempDirectoy, videoID) + ".txt", processOutput.ToString());
     }
 
     private void CancelButton_Click(object sender, EventArgs e)
@@ -591,7 +587,7 @@ class DownloadContainer : Panel
     // video ze obstaja v tempu nastavi vrednosti UI-ja in ustrezno zakljuci process/thread
     private bool videoExists()
     {
-        if (System.IO.File.Exists(Path.Combine(Wer.tempDirectoy, ".info.json")))
+        if (System.IO.File.Exists(Path.Combine(Preferences.tempDirectoy, ".info.json")))
         {
             return true;
         }
@@ -603,7 +599,7 @@ class DownloadContainer : Panel
     private bool growing = true;
     private bool canAnimateThumbnail = true;
     private int perSide = 1; // 8
-    private Color c1 = Wer.colorAccent1;
+    private Color c1 = Preferences.colorAccent1;
     private Image getImageFrame()
     {
         for (int i = 0; i < 100; i++)
@@ -611,7 +607,6 @@ class DownloadContainer : Panel
             r1.Next(0, 1);
         }
         int side = 256; // 256 width height in pixels
-        //int perSide = 3; // 8
         Image im = new Bitmap(side, side);
         using (Graphics g = Graphics.FromImage(im))
         {
@@ -619,13 +614,7 @@ class DownloadContainer : Panel
             {
                 for (int j = 0; j < perSide; j++)
                 {
-                    //int chosen = r1.Next(0, 4);
-                    //if (chosen == 0) { c1 = Wer.colorAccent1; }
-                    //if (chosen == 1) { c1 = Wer.colorAccent2; }
-                    //if (chosen == 2) { c1 = Wer.colorAccent3; }
-                    //if (chosen == 3) { c1 = Wer.colorAccent4; }
-                    //c1 = Wer.colorAccent1;
-                    int sideA = (int)((side / perSide) /** sizePercent*/);
+                    int sideA = (int)((side / perSide));
                     g.FillRectangle(new SolidBrush(c1), ((side / perSide) * i) + (float)(((sideA - (sideA * sizePercent)) / 2)), ((side / perSide) * j) + (float)(((sideA - (sideA * sizePercent)) / 2)), (float)(sideA * sizePercent), (float)(sideA * sizePercent));
                 }
             }
@@ -717,7 +706,7 @@ class DownloadContainer : Panel
         }
         else
         {
-            Process.Start(Path.Combine(Wer.tempDirectoy, videoID) + imageExtension);
+            Process.Start(Path.Combine(Preferences.tempDirectoy, videoID) + imageExtension);
         }
     }
 }

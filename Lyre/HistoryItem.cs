@@ -11,13 +11,4 @@ public class HistoryItem
     public DateTime time_created_UTC;
     public string path_output;
     public string path_thumbnail;
-
-    //public HistoryItem()
-    //{
-    //    this.url = "";
-    //    this.title = "";
-    //    this.path_output = "";
-    //    this.path_thumbnail = "";
-    //    this.time_created_UTC = DateTime.UtcNow;
-    //}
 }
