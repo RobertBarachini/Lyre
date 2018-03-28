@@ -1,6 +1,4 @@
-# Lyre
-
-## A more transparent music app.
+# Lyre - a more transparent music app.
 
 ## Build
 Open the solution in Visual Studio and add the following libraries using NuGet:

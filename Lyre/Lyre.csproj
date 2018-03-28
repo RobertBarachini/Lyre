@@ -117,13 +117,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="bin\Debug\resources\FormButtons_CloseBig.png" />
-    <None Include="bin\Debug\resources\FormButtons_CloseSmall.png" />
-    <None Include="bin\Debug\resources\FormButtons_Maximize.png" />
-    <None Include="bin\Debug\resources\FormButtons_Minimize.png" />
-    <None Include="bin\Debug\resources\Icon3.png" />
-    <None Include="bin\Debug\resources\IMG_Directory.png" />
-    <None Include="bin\Debug\resources\IMG_Settings.png" />
     <Content Include="Lyre.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -138,6 +131,8 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="bin\Debug\resources\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
