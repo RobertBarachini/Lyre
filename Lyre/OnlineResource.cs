@@ -35,6 +35,14 @@ class OnlineResource
         ),
         new OnlineResource
         (
+            "https://www.ffmpeg.org/",
+            Shared.resourcesWebsiteURL + "ffprobe.exe",
+            Path.Combine("ffprobe.exe"),
+            false,
+            false
+        ),
+        new OnlineResource
+        (
             "Robert Barachini",
             Shared.resourcesWebsiteURL + Shared.FormControls_CloseBig,
             Path.Combine(Shared.resourcesDirectory, Shared.FormControls_CloseBig),

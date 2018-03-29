@@ -28,7 +28,7 @@ namespace Lyre
         }
 
         private Preferences preferences; // preferences object
-      
+
         // Controls
         private Panel ccContainer;
         private Panel ccTopBar;
@@ -198,7 +198,15 @@ namespace Lyre
                     {
                         urls.AddLast(dc.getURL());
                     }
-                    
+                    //// Kill the process
+                    //try
+                    //{
+                    //    dc.getSingleDownload().Kill();
+                    //}
+                    //catch(Exception ex)
+                    //{
+
+                    //}
                 }
                 saveJSON(Shared.filenameDlQueue, urls);
             }
@@ -286,7 +294,7 @@ namespace Lyre
             ccTopBar.Controls.Add(ccHint);
             ccHint.Font = new Font(Preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
             ccHint.Text = "ALPHA preview : Paste Youtube links anywhere, really ...";
-            ccHint.ForeColor = Color.White;
+            ccHint.ForeColor = Preferences.colorFontDefault;
             ccHint.BackColor = Preferences.colorBackground;
 
             ccSettings = new Panel();
@@ -305,7 +313,7 @@ namespace Lyre
             ccResourceDownloaderLog.BorderStyle = BorderStyle.None;
             ccResourceDownloaderLog.Dock = DockStyle.Fill;
             ccResourceDownloaderLog.BackColor = Preferences.colorBackground;
-            ccResourceDownloaderLog.ForeColor = Color.White;
+            ccResourceDownloaderLog.ForeColor = Preferences.colorFontDefault;
             ccResourceDownloaderLog.Font = new Font(Preferences.fontDefault.FontFamily, 16, GraphicsUnit.Pixel);
             ccResourceDownloaderLog.ReadOnly = true;
             ccResourceDownloaderLog.KeyDown += CcResourceDownloaderLog_KeyDown;

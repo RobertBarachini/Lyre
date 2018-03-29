@@ -103,6 +103,26 @@ class DownloadContainer : Panel
         }
     }
 
+    public Process getSingleDownload()
+    {
+        return singleDownload;
+    }
+
+    private bool isUniqueDownloadsID(string videoID)
+    {
+        lock(downloadsLock)
+        {
+            foreach (DownloadContainer dc in downloads)
+            {
+                if(dc != this && dc.videoID.Equals(videoID))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private void DownloadsHandler_Tick(object sender, EventArgs e)
     {
         lock (activeProcessesLock)
@@ -225,7 +245,7 @@ class DownloadContainer : Panel
         this.Controls.Add(title);
         title.Font = Preferences.fontDefault;
         title.Text = "Queued for download ...";
-        title.ForeColor = Color.White;
+        title.ForeColor = Preferences.colorFontDefault;
         title.TextAlign = ContentAlignment.TopLeft;
         title.Font = new Font(Preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
 
@@ -238,7 +258,7 @@ class DownloadContainer : Panel
         progressLabel.Parent = progressBar;
         progressBar.Controls.Add(progressLabel);
         progressLabel.Dock = DockStyle.Fill;
-        progressLabel.ForeColor = Color.White;
+        progressLabel.ForeColor = Preferences.colorFontDefault;
         progressLabel.BackColor = Preferences.colorAccent1;
         progressLabel.TextAlign = ContentAlignment.MiddleCenter;
         progressLabel.Text = "";
@@ -249,7 +269,7 @@ class DownloadContainer : Panel
         this.Controls.Add(outputLog);
         outputLog.BorderStyle = BorderStyle.None;
         outputLog.BackColor = Preferences.colorForeground;
-        outputLog.ForeColor = Color.White;
+        outputLog.ForeColor = Preferences.colorFontDefault;
         outputLog.Font = new Font(Preferences.fontDefault.FontFamily, 14, GraphicsUnit.Pixel);
 
         cancelButton = new Panel();
@@ -339,37 +359,65 @@ class DownloadContainer : Panel
     {
         this.videoID = getVideoID(url);
         string path = Path.Combine(Preferences.tempDirectoy, videoID + ".info.json");
-        if (System.IO.File.Exists(path) && 1 == 2)
+        //check if the output file is already on disk
+        bool outputFileExists = false;
+        if (System.IO.File.Exists(path))
         {
             infoJSON = JObject.Parse(System.IO.File.ReadAllText(path));
+            string outputFilename = "";
+            outputFilename = getValidFileName(infoJSON.GetValue("fulltitle").ToString());
+            if(System.IO.File.Exists(Path.Combine(Preferences.downloadsDirectory, outputFilename + ".mp3")))
+            {
+                outputFileExists = true;
+            }
+        }
+        if (outputFileExists)
+        {
+            finished = true;
+            animateGeneral.Stop();
+            updateProgress(1);
+            this.progressLabel.Invoke((MethodInvoker)delegate
+            {
+                progressLabel.BackColor = Preferences.colorAccent4;
+                progressLabel.Text = "Already on disk";
+            });
+            animateProgress.Stop();
             this.title.Invoke((MethodInvoker)delegate
             {
                 this.title.Text = infoJSON.GetValue("fulltitle").ToString();
             });
             string fileURL = infoJSON["thumbnails"].First["url"].ToString();
             imageExtension = getExtension(fileURL);
+            string filename = infoJSON.GetValue("display_id").ToString();
             this.thumbnail.Invoke((MethodInvoker)delegate
             {
-                thumbnail.Image = getImage(Path.Combine(Preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
+                thumbnail.Image = getImage(Path.Combine(Preferences.tempDirectoy, filename + imageExtension));
             });
-            updateProgress(1);
         }
         else
         {
-            try
+            // only add to downloads if the videoID is unique = don't download twice
+            if (isUniqueDownloadsID(getVideoID(url)))
             {
-                this.url = new Uri(url);
-            }
-            catch (Exception ex)
-            {
-                return;
-            }
-            this.canConvert = canConvert;
-            this.destinationDirectory = destinationDirectory;
+                try
+                {
+                    this.url = new Uri(url);
+                }
+                catch (Exception ex)
+                {
+                    return;
+                }
+                this.canConvert = canConvert;
+                this.destinationDirectory = destinationDirectory;
 
-            lock (downloadsQueueLock)
+                lock (downloadsQueueLock)
+                {
+                    downloadsQueue.AddLast(this);
+                }
+            }
+            else
             {
-                downloadsQueue.AddLast(this);
+                removeThis();
             }
         }
     }
@@ -546,6 +594,11 @@ class DownloadContainer : Panel
     }
 
     private void CancelButton_Click(object sender, EventArgs e)
+    {
+        removeThis();
+    }
+
+    private void removeThis()
     {
         if (instanceRemoved == false)
         {

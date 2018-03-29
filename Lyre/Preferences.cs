@@ -16,6 +16,8 @@ public class Preferences // Preferences / Settings / Defaults
     [JsonProperty]
     public static Color colorForeground = Color.FromArgb(45, 45, 48); // Dark gray
     [JsonProperty]
+    public static Color colorFontDefault = Color.FromArgb(255, 255, 255); // White
+    [JsonProperty]
     public static Color colorAccent1 = Color.FromArgb(0, 84, 166); // Download blue
     [JsonProperty]
     public static Color colorAccent2 = Color.FromArgb(0, 255, 144); // Util green
