@@ -57,13 +57,21 @@ namespace Lyre
 
             resourcesMissingCount = getResourcesMissingCount();
             InitComponents();
-            loadSources();
+            try // if a dll is missing
+            {
+                loadSources();
+            }
+            catch(Exception ex)
+            {
+                preferences = new Preferences();
+            }
             ResizeComponents();
-            this.Show();
+            //this.Show();
             if (resourcesMissingCount > 0)
             {
                 getResources();
             }
+            this.BringToFront();
         }
 
         private int getResourcesMissingCount()
@@ -190,6 +198,7 @@ namespace Lyre
                     {
                         urls.AddLast(dc.getURL());
                     }
+                    
                 }
                 saveJSON(Shared.filenameDlQueue, urls);
             }
@@ -210,6 +219,8 @@ namespace Lyre
             this.BackColor = Preferences.colorForeground;
             //this.FormBorderStyle = FormBorderStyle.None;
             this.MouseMove += Form1_MouseMove;
+            this.MouseDown += Form1_MouseDown;
+            //this.BackColor = Color.Lime;
 
             ccContainer = new Panel();
             ccContainer.Parent = this;
@@ -221,6 +232,7 @@ namespace Lyre
             ccTopBar.Parent = ccContainer;
             ccContainer.Controls.Add(ccTopBar);
             ccTopBar.BackColor = Preferences.colorBackground;
+            ccTopBar.MouseDown += Form1_MouseDown;
 
             ccDownloadsContainer = new Panel();
             ccDownloadsContainer.Parent = ccContainer;
@@ -238,6 +250,7 @@ namespace Lyre
             ccFormMinimize.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_Minimize));
             ccFormMinimize.BackColor = ccTopBar.BackColor;
             ccFormMinimize.Click += CcFormMinimize_Click;
+            ccFormMinimize.Visible = false;
 
             ccFormMaximize = new Panel();
             ccFormMaximize.Parent = ccTopBar;
@@ -247,6 +260,7 @@ namespace Lyre
             ccFormMaximize.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_Maximize));
             ccFormMaximize.BackColor = ccTopBar.BackColor;
             ccFormMaximize.Click += CcFormMaximize_Click;
+            ccFormMaximize.Visible = false;
 
             ccFormClose = new Panel();
             ccFormClose.Parent = ccTopBar;
@@ -256,6 +270,7 @@ namespace Lyre
             ccFormClose.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_CloseBig));
             ccFormClose.BackColor = ccTopBar.BackColor;
             ccFormClose.Click += CcFormClose_Click;
+            ccFormClose.Visible = false;
 
             ccDownloadsDirectory = new Panel();
             ccDownloadsDirectory.Parent = ccTopBar;
@@ -282,6 +297,7 @@ namespace Lyre
             ccSettings.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Settings));
             ccSettings.BackColor = ccTopBar.BackColor;
             ccSettings.Click += CcSettings_Click;
+            ccSettings.Visible = false;
 
             ccResourceDownloaderLog = new RichTextBox();
             ccResourceDownloaderLog.Parent = ccDownloadsContainer;
@@ -297,6 +313,22 @@ namespace Lyre
             if(resourcesMissingCount == 0)
             {
                 ccResourceDownloaderLog.Visible = false;
+            }
+        }
+
+        // https://stackoverflow.com/a/1592899
+        public const int WM_NCLBUTTONDOWN = 0xA1;
+        public const int HT_CAPTION = 0x2;
+        [System.Runtime.InteropServices.DllImportAttribute("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        [System.Runtime.InteropServices.DllImportAttribute("user32.dll")]
+        public static extern bool ReleaseCapture();
+        private void Form1_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
             }
         }
 
@@ -479,7 +511,10 @@ namespace Lyre
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            saveSources();
+            if (resourcesMissingCount != -1)
+            {
+                saveSources();
+            }
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)

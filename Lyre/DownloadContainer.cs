@@ -496,15 +496,22 @@ class DownloadContainer : Panel
         }
         catch (Exception ex) { }
 
+        string outputFileName = infoJSON.GetValue("fulltitle").ToString();
+        outputFileName = getValidFileName(outputFileName);
         try
         {
-            System.IO.File.Move(Path.Combine(Preferences.tempDirectoy, videoID) + ".mp3", Path.Combine(destinationDirectory, infoJSON.GetValue("fulltitle").ToString() + ".mp3"));
+            System.IO.File.Move(Path.Combine(Preferences.tempDirectoy, videoID) + ".mp3", Path.Combine(destinationDirectory, outputFileName + ".mp3"));
         }
         catch (Exception ex) { }
+        try
+        {
+            System.IO.File.Delete(Path.Combine(Preferences.tempDirectoy, videoID) + ".mp3");
+        }
+        catch(Exception ex) { }
 
         HistoryItem hi = new HistoryItem();
         //EXAMPLE : Path.GetFullPath((new Uri(absolute_path)).LocalPath);
-        hi.path_output = Path.GetFullPath(Path.Combine(destinationDirectory, infoJSON.GetValue("fulltitle").ToString() + ".mp3"));
+        hi.path_output = Path.GetFullPath(Path.Combine(destinationDirectory, outputFileName + ".mp3"));
         hi.path_thumbnail = Path.GetFullPath(Path.Combine(Preferences.tempDirectoy, videoID + imageExtension));
         hi.title = infoJSON.GetValue("fulltitle").ToString();
         hi.url = infoJSON.GetValue("webpage_url").ToString();
@@ -521,6 +528,21 @@ class DownloadContainer : Panel
         });
 
         System.IO.File.WriteAllText(Path.Combine(Preferences.tempDirectoy, videoID) + ".txt", processOutput.ToString());
+    }
+
+    private string getValidFileName(string filename)
+    {
+        // Illegal chars : \/:*?"<>|
+        return filename.
+            Replace("\\", "＼").
+            Replace("/", "⁄").
+            Replace(":", "˸").
+            Replace("*", "⁎").
+            Replace("?", "？").
+            Replace("\"", "ʺ").
+            Replace("<", "˂").
+            Replace(">", "˃").
+            Replace("|", "ǀ");
     }
 
     private void CancelButton_Click(object sender, EventArgs e)
