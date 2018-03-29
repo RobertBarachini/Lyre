@@ -14,4 +14,4 @@ I have grown tired of other apps that do not fit my taste or ideas for various r
 
 My ultimate goal is to create an open-source all-in-one music app. The end product will consist of content downloaders, automatic ID3 tagging, music library and an advanced media player. The final app should play nicely with all music lovers, DJs and data hoarders. 
 
-If you have any further questions or suggestions please do not hesitate to contact me. I am always ready to learn more.
+If you have any further questions or suggestions please do not hesitate to contact me. I am always ready to learn more!
