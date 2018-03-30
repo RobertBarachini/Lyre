@@ -20,6 +20,8 @@ using TagLib;
 //// TODO
 //
 // - check if the download and encoding has been a success - check at event "Process.Exit" = mp3/video exists
+// - add Status enum (Downloading | DownloadExited | EncodingExited| Success | Fail)
+// - check for no connection to the server (currently acts as "success" -> change to "Waiting for connection")
 
 // kako bi naredil da ko se klice download ne caka na svoj vrstni red s queue..
 // static timer ki gleda kateri je prvi DownloadContainer v downloadsQueue in šele nato pokliče download()
@@ -71,6 +73,7 @@ class DownloadContainer : Panel
     private double progress;
     private  StringBuilder processOutput;
     private Process singleDownload;
+    private Process singleEncoder;
     private JObject infoJSON;
     private string videoID;
     private string destinationDirectory;
@@ -83,9 +86,13 @@ class DownloadContainer : Panel
     private double previousProgress;
     private RichTextBox outputLog;
     private bool finished = false;
+    private Status status;
+    private string dlOutputPath;
 
     public DownloadContainer()
     {
+        status = Status.Idle;
+        success = false;
         downloads.AddLast(this);
         downloadNode = downloads.Last;
         if (downloads.Count > 0)
@@ -102,6 +109,20 @@ class DownloadContainer : Panel
             downloadsHandler.Start();
         }
     }
+
+    // Use for tracking information regarding process progress
+    enum Status
+    {
+        Idle,
+        Downloading,
+        DownloadExited,
+        Enconding,
+        EndocingExited,
+        WritingOutput,
+        Done
+    };
+
+    private bool success;
 
     public Process getSingleDownload()
     {
@@ -177,15 +198,7 @@ class DownloadContainer : Panel
             });
             this.progressLabel.Invoke((MethodInvoker)delegate
             {
-                if (newProgress == 1)
-                {
-                    progressLabel.BackColor = Preferences.colorAccent3;
-                    progressLabel.Text = "Processing ...";
-                }
-                else
-                {
-                    progressLabel.Text = (newProgress * 100).ToString("0.0") + " %";
-                }
+                progressLabel.Text = (newProgress * 100).ToString("0.0") + " %";
             });
         }
         catch (Exception ex)
@@ -439,15 +452,16 @@ class DownloadContainer : Panel
 
         singleDownload = new Process();
         {
-            singleDownload.StartInfo.FileName = @"youtube-dl.exe";
             if (canConvert)
             {
-                arguments = "--extract-audio --audio-format mp3 " + "-o \"" + Path.Combine(Preferences.tempDirectoy, videoID + ".%(ext)s"/*, "%(title)s - %(id)s.%(ext)s"*/) + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
+                //arguments = "--extract-audio --audio-format mp3 " + "-o \"" + Path.Combine(Preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
+                arguments = "--extract-audio " + "-o \"" + Path.Combine(Preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
             }
             else
             {
                 arguments = "-o \"" + Path.Combine(Preferences.tempDirectoy, videoID + ".%(ext)s"/*, "%(title)s - %(id)s.%(ext)s"*/) + "\" " + url + " --write-thumbnail --write-info-json";
             }
+            singleDownload.StartInfo.FileName = @"youtube-dl.exe";
             singleDownload.StartInfo.Arguments = arguments;
             singleDownload.StartInfo.CreateNoWindow = true;
             singleDownload.StartInfo.UseShellExecute = false;
@@ -456,6 +470,7 @@ class DownloadContainer : Panel
             singleDownload.EnableRaisingEvents = true;
             singleDownload.Exited += SingleDownload_Exited;
             singleDownload.Start();
+            status = Status.Downloading;
             singleDownload.BeginOutputReadLine();
         }
     }
@@ -509,6 +524,10 @@ class DownloadContainer : Panel
                     thumbnail.Image = getImage(Path.Combine(Preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
                 });
             }
+            else if(data.Contains("[ffmpeg] Destination: "))
+            {
+                dlOutputPath = data.Substring("[ffmpeg] Destination: ".Length);
+            }
             else
             {
                 // TO BE IMPLEMENTED
@@ -521,8 +540,92 @@ class DownloadContainer : Panel
 
     private void SingleDownload_Exited(object sender, EventArgs e)
     {
+        status = Status.DownloadExited;
+        encodeOutput();
+    }
+
+    private void encodeOutput()
+    {
+        string arguments = "";
+
+        singleEncoder = new Process();
+        {
+            string newPath = dlOutputPath.Substring(0, dlOutputPath.LastIndexOf("."));
+            arguments = "-v debug -i " + dlOutputPath /*Path.Combine(Preferences.tempDirectoy, videoID) + ".webm"*/ + " -f mp3 " + /*Path.Combine(Preferences.downloadsDirectory, videoID)*//* + ".mp3"*/newPath + ".mp3";
+            singleEncoder.StartInfo.FileName = @"ffmpeg.exe";
+            singleEncoder.StartInfo.Arguments = arguments;
+            singleEncoder.StartInfo.CreateNoWindow = true;
+            singleEncoder.StartInfo.UseShellExecute = false;
+            singleEncoder.StartInfo.RedirectStandardOutput = true;
+            singleEncoder.StartInfo.RedirectStandardError = true;
+            singleEncoder.OutputDataReceived += SingleEncoder_OutputDataReceived;
+            singleEncoder.ErrorDataReceived += SingleEncoder_ErrorDataReceived;
+            singleEncoder.EnableRaisingEvents = true;
+            singleEncoder.Exited += SingleEncoder_Exited;
+            singleEncoder.Start();
+            singleEncoder.BeginOutputReadLine();
+            singleEncoder.BeginErrorReadLine();
+            status = Status.Enconding;
+            this.progressLabel.Invoke((MethodInvoker)delegate
+            {
+                progressLabel.BackColor = Preferences.colorAccent3;
+                progressBar.BackColor = Preferences.colorAccent3;
+            });
+            progress = 0;
+            updateProgress(0);
+        }
+    }
+
+    private string duration;
+    private void SingleEncoder_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+    {
+        if(e.Data != null)
+        {
+            processOutput.Append("STD_ERR: " + e.Data + Environment.NewLine);
+            if(e.Data.Contains("Duration: "))
+            {
+                duration = e.Data.Substring(e.Data.IndexOf("Duration: ") + "Duration: ".Length);
+                duration = duration.Substring(0, duration.IndexOf(","));
+            }
+            else if(e.Data.Contains("time="))
+            {
+                string currentDuration = e.Data.Substring(e.Data.IndexOf("time=") + "time=".Length);
+                currentDuration = currentDuration.Substring(0, currentDuration.IndexOf(" bitrate="));
+                double totalSeconds = durationToSeconds(duration);
+                double currentSeconds = durationToSeconds(currentDuration);
+                double somePregress = currentSeconds / totalSeconds;
+                //updateProgress(somePregress);
+                progress = somePregress;
+            }
+            int aaaaaaaa = 0;
+        }
+    }
+
+    private double durationToSeconds(string inputDuration)
+    {
+        string[] timeSlices = inputDuration.Split(':');
+        double seconds = 0;
+        seconds += Convert.ToDouble(timeSlices[0]) * 3600; // hours
+        seconds += Convert.ToDouble(timeSlices[1]) * 60; // minutes
+        seconds += Convert.ToDouble(timeSlices[2], CultureInfo.InvariantCulture); // seconds
+        return seconds;
+    }
+
+    private void SingleEncoder_OutputDataReceived(object sender, DataReceivedEventArgs e)
+    {
+        if (e.Data != null)
+        {
+            processOutput.Append("STD_OUT: " + e.Data + Environment.NewLine);
+        }
+    }
+
+    private void SingleEncoder_Exited(object sender, EventArgs e)
+    {
+        status = Status.EndocingExited;
+
         finished = true;
         animateProgress.Stop();
+        progress = 1;
         updateProgress(1);
 
         if (instanceRemoved == false)
@@ -548,12 +651,27 @@ class DownloadContainer : Panel
         outputFileName = getValidFileName(outputFileName);
         try
         {
-            System.IO.File.Move(Path.Combine(Preferences.tempDirectoy, videoID) + ".mp3", Path.Combine(destinationDirectory, outputFileName + ".mp3"));
+            string outputPath = Path.Combine(destinationDirectory, outputFileName + ".mp3");
+            status = Status.WritingOutput;
+            System.IO.File.Move(Path.Combine(Preferences.tempDirectoy, videoID) + ".mp3", outputPath);
+            if (System.IO.File.Exists(outputPath))
+            {
+                success = true;
+            }
+            else
+            {
+                success = false;
+            }
         }
         catch (Exception ex) { }
         try
         {
             System.IO.File.Delete(Path.Combine(Preferences.tempDirectoy, videoID) + ".mp3");
+        }
+        catch (Exception ex) { }
+        try
+        {
+            System.IO.File.Delete(dlOutputPath);
         }
         catch(Exception ex) { }
 
@@ -576,6 +694,7 @@ class DownloadContainer : Panel
         });
 
         System.IO.File.WriteAllText(Path.Combine(Preferences.tempDirectoy, videoID) + ".txt", processOutput.ToString());
+        status = Status.Done;
     }
 
     private string getValidFileName(string filename)
