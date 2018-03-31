@@ -27,7 +27,7 @@ namespace Lyre
             InitializeComponent();
         }
 
-        private Preferences preferences; // preferences object
+        //public static Preferences preferences; // preferences object
 
         // Controls
         private Panel ccContainer;
@@ -56,15 +56,16 @@ namespace Lyre
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             resourcesMissingCount = getResourcesMissingCount();
-            InitComponents();
             try // if a dll is missing
             {
                 loadSources();
             }
             catch(Exception ex)
             {
-                preferences = new Preferences();
+                //preferences = new Preferences();
             }
+            InitComponents();
+            loadDlQueue();
             ResizeComponents();
             //this.Show();
             if (resourcesMissingCount > 0)
@@ -161,10 +162,9 @@ namespace Lyre
 
         private void loadSources()
         {
-            preferences = new Preferences();
-            loadJSON(Shared.filePreferences, ref preferences);
+            //preferences = new Preferences();
+            loadJSON(Shared.filePreferences, ref Shared.preferences);
             loadJSON(Shared.filenameHistory, ref Shared.history);
-            loadDlQueue();
             
         }
 
@@ -183,7 +183,7 @@ namespace Lyre
 
         private void saveSources()
         {
-            saveJSON(Shared.filePreferences, preferences);
+            saveJSON(Shared.filePreferences, Shared.preferences);
             saveJSON(Shared.filenameHistory, Shared.history);
 
             // if files ar missing and are being rebuilt downloads queue is not activated
@@ -217,14 +217,14 @@ namespace Lyre
             this.Text = "Lyre - A music app by Robert Barachini";
             this.FormClosing += Form1_FormClosing;
             this.DoubleBuffered = true;
-            this.Width = Preferences.formWidth;
-            this.Height = Preferences.formHeight;
-            this.Top = Preferences.formTop;
-            this.Height = Preferences.formHeight;
+            this.Width = Shared.preferences.formWidth;
+            this.Height = Shared.preferences.formHeight;
+            this.Top = Shared.preferences.formTop;
+            this.Height = Shared.preferences.formHeight;
             this.SizeChanged += Form1_SizeChanged;
             this.KeyDown += Paste_KeyDown;
             this.KeyUp += Paste_KeyUp;
-            this.BackColor = Preferences.colorForeground;
+            this.BackColor = Shared.preferences.colorForeground;
             //this.FormBorderStyle = FormBorderStyle.None;
             this.MouseMove += Form1_MouseMove;
             this.MouseDown += Form1_MouseDown;
@@ -233,19 +233,19 @@ namespace Lyre
             ccContainer = new Panel();
             ccContainer.Parent = this;
             this.Controls.Add(ccContainer);
-            ccContainer.BackColor = Preferences.colorForeground;
+            ccContainer.BackColor = Shared.preferences.colorForeground;
             ccContainer.Dock = DockStyle.Fill;
 
             ccTopBar = new Panel();
             ccTopBar.Parent = ccContainer;
             ccContainer.Controls.Add(ccTopBar);
-            ccTopBar.BackColor = Preferences.colorBackground;
+            ccTopBar.BackColor = Shared.preferences.colorBackground;
             ccTopBar.MouseDown += Form1_MouseDown;
 
             ccDownloadsContainer = new Panel();
             ccDownloadsContainer.Parent = ccContainer;
             ccContainer.Controls.Add(ccDownloadsContainer);
-            ccDownloadsContainer.BackColor = Preferences.colorForeground;
+            ccDownloadsContainer.BackColor = Shared.preferences.colorForeground;
             ccDownloadsContainer.AutoScroll = true;
             ccDownloadsContainer.KeyDown += Paste_KeyDown;
             ccDownloadsContainer.KeyUp += Paste_KeyUp;
@@ -292,10 +292,10 @@ namespace Lyre
             ccHint = new Label();
             ccHint.Parent = ccTopBar;
             ccTopBar.Controls.Add(ccHint);
-            ccHint.Font = new Font(Preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
+            ccHint.Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
             ccHint.Text = "ALPHA preview : Paste Youtube links anywhere, really ...";
-            ccHint.ForeColor = Preferences.colorFontDefault;
-            ccHint.BackColor = Preferences.colorBackground;
+            ccHint.ForeColor = Shared.preferences.colorFontDefault;
+            ccHint.BackColor = Shared.preferences.colorBackground;
 
             ccSettings = new Panel();
             ccSettings.Parent = ccTopBar;
@@ -312,9 +312,9 @@ namespace Lyre
             ccDownloadsContainer.Controls.Add(ccResourceDownloaderLog);
             ccResourceDownloaderLog.BorderStyle = BorderStyle.None;
             ccResourceDownloaderLog.Dock = DockStyle.Fill;
-            ccResourceDownloaderLog.BackColor = Preferences.colorBackground;
-            ccResourceDownloaderLog.ForeColor = Preferences.colorFontDefault;
-            ccResourceDownloaderLog.Font = new Font(Preferences.fontDefault.FontFamily, 16, GraphicsUnit.Pixel);
+            ccResourceDownloaderLog.BackColor = Shared.preferences.colorBackground;
+            ccResourceDownloaderLog.ForeColor = Shared.preferences.colorFontDefault;
+            ccResourceDownloaderLog.Font = new Font(Shared.preferences.fontDefault.FontFamily, 16, GraphicsUnit.Pixel);
             ccResourceDownloaderLog.ReadOnly = true;
             ccResourceDownloaderLog.KeyDown += CcResourceDownloaderLog_KeyDown;
             ccResourceDownloaderLog.LinkClicked += CcResourceDownloaderLog_LinkClicked;
@@ -373,17 +373,17 @@ namespace Lyre
             using (var folderDialog = new FolderBrowserDialog())
             {
                 folderDialog.Description = "Choose future downloads destination directory.";
-                if(Preferences.downloadsDirectory.Equals("downloads"))
+                if(Shared.preferences.downloadsDirectory.Equals("downloads"))
                 {
-                    folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Preferences.downloadsDirectory);
+                    folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Shared.preferences.downloadsDirectory);
                 }
                 else
                 {
-                    folderDialog.SelectedPath = Preferences.downloadsDirectory;
+                    folderDialog.SelectedPath = Shared.preferences.downloadsDirectory;
                 }
                 if (folderDialog.ShowDialog() == DialogResult.OK)
                 {
-                    Preferences.downloadsDirectory = folderDialog.SelectedPath;
+                    Shared.preferences.downloadsDirectory = folderDialog.SelectedPath;
                 }
             }
         }
@@ -392,8 +392,8 @@ namespace Lyre
         {
             this.SuspendLayout();
 
-            //Preferences.formWidth = this.Width;
-            //Preferences.formHeight = this.Height;
+            //Shared.preferences.formWidth = this.Width;
+            //Shared.preferences.formHeight = this.Height;
 
             //ccContainer.Top = 0;
             //ccContainer.Left = 0;
@@ -591,7 +591,7 @@ namespace Lyre
                 dcMain.Parent = ccDownloadsContainer;
                 resizeDcMain();
             }
-            newDc.download(url, Preferences.downloadsDirectory, true);
+            newDc.download(url, Shared.preferences.downloadsDirectory, true);
         }
 
         private void Paste_KeyUp(object sender, KeyEventArgs e)

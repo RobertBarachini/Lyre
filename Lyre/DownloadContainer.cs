@@ -91,6 +91,11 @@ class DownloadContainer : Panel
 
     public DownloadContainer()
     {
+        InitThis();
+    }
+
+    private void InitThis()
+    {
         status = Status.Idle;
         success = false;
         downloads.AddLast(this);
@@ -241,13 +246,13 @@ class DownloadContainer : Panel
         progress = 0;
 
         this.DoubleBuffered = true;
-        this.BackColor = Preferences.colorBackground;
-        this.Font = Preferences.fontDefault;
+        this.BackColor = Shared.preferences.colorBackground;
+        this.Font = Shared.preferences.fontDefault;
 
         thumbnail = new PictureBox();
         thumbnail.Parent = this;
         this.Controls.Add(thumbnail);
-        thumbnail.BackColor = Preferences.colorBackground;
+        thumbnail.BackColor = Shared.preferences.colorBackground;
         thumbnail.SizeMode = PictureBoxSizeMode.StretchImage; // Zoom should be used - change thumbnail.Left
         thumbnail.Image = getImageFrame();//getImage("squareAnimation256.gif");
         thumbnail.Cursor = Cursors.Hand;
@@ -256,39 +261,40 @@ class DownloadContainer : Panel
         title = new Label();
         title.Parent = this;
         this.Controls.Add(title);
-        title.Font = Preferences.fontDefault;
+        title.Font = Shared.preferences.fontDefault;
         title.Text = "Queued for download ...";
-        title.ForeColor = Preferences.colorFontDefault;
+        title.ForeColor = Shared.preferences.colorFontDefault;
         title.TextAlign = ContentAlignment.TopLeft;
-        title.Font = new Font(Preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
+        title.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
 
         progressBar = new Panel();
         progressBar.Parent = this;
         this.Controls.Add(progressBar);
-        progressBar.BackColor = Preferences.colorAccent1;
+        progressBar.BackColor = Shared.preferences.colorAccent1;
 
         progressLabel = new Label();
         progressLabel.Parent = progressBar;
         progressBar.Controls.Add(progressLabel);
         progressLabel.Dock = DockStyle.Fill;
-        progressLabel.ForeColor = Preferences.colorFontDefault;
-        progressLabel.BackColor = Preferences.colorAccent1;
+        progressLabel.ForeColor = Shared.preferences.colorFontDefault;
+        progressLabel.BackColor = Shared.preferences.colorAccent1;
         progressLabel.TextAlign = ContentAlignment.MiddleCenter;
         progressLabel.Text = "";
-        progressLabel.Font = new Font(Preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
+        progressLabel.Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
+        progressLabel.Click += ProgressLabel_Click;
 
         outputLog = new RichTextBox();
         outputLog.Parent = this;
         this.Controls.Add(outputLog);
         outputLog.BorderStyle = BorderStyle.None;
-        outputLog.BackColor = Preferences.colorForeground;
-        outputLog.ForeColor = Preferences.colorFontDefault;
-        outputLog.Font = new Font(Preferences.fontDefault.FontFamily, 14, GraphicsUnit.Pixel);
+        outputLog.BackColor = Shared.preferences.colorForeground;
+        outputLog.ForeColor = Shared.preferences.colorFontDefault;
+        outputLog.Font = new Font(Shared.preferences.fontDefault.FontFamily, 14, GraphicsUnit.Pixel);
 
         cancelButton = new Panel();
         cancelButton.Parent = this;
         this.Controls.Add(cancelButton);
-        cancelButton.BackColor = Preferences.colorAccent2;
+        cancelButton.BackColor = Shared.preferences.colorAccent2;
         cancelButton.Cursor = Cursors.Hand;
         cancelButton.Click += CancelButton_Click;
         //cancelButton.BackgroundImage = getImage("squareAnimation64.gif");
@@ -306,6 +312,15 @@ class DownloadContainer : Panel
         animateGeneral.Interval = 50;
         animateGeneral.Tick += AnimateGeneral_Tick;
         animateGeneral.Start();
+    }
+
+    private void ProgressLabel_Click(object sender, EventArgs e)
+    {
+        if(status == Status.Done && success == false)
+        {
+            this.Cursor = Cursors.Default;
+            retryDownload();
+        }
     }
 
     private void AnimateGeneral_Tick(object sender, EventArgs e)
@@ -330,11 +345,11 @@ class DownloadContainer : Panel
                 if (sizePercent < -2) // 0
                 {
                     int chosen = r1.Next(0, 4);
-                    if (chosen == 0) { c1 = Preferences.colorAccent1; }
-                    if (chosen == 1) { c1 = Preferences.colorAccent2; }
-                    if (chosen == 2) { c1 = Preferences.colorAccent3; }
-                    if (chosen == 3) { c1 = Preferences.colorAccent4; }
-                    //c1 = Preferences.colorAccent1;
+                    if (chosen == 0) { c1 = Shared.preferences.colorAccent1; }
+                    if (chosen == 1) { c1 = Shared.preferences.colorAccent2; }
+                    if (chosen == 2) { c1 = Shared.preferences.colorAccent3; }
+                    if (chosen == 3) { c1 = Shared.preferences.colorAccent4; }
+                    //c1 = Shared.preferences.colorAccent1;
                     perSide = r1.Next(1, 9);
                     sizePercent = 0;
                     growing = true;
@@ -368,10 +383,35 @@ class DownloadContainer : Panel
         updateProgress(previousProgress);
     }
 
+    private void retryDownload()
+    {
+        
+
+        progress = 0;
+        updateProgress(0);
+        success = false;
+        status = Status.Idle;
+        animateProgress.Start();
+        animateGeneral.Start();
+        this.title.Invoke((MethodInvoker)delegate
+        {
+            this.title.Text = "Waiting for download";
+        });
+        this.progressLabel.Invoke((MethodInvoker)delegate
+        {
+            progressLabel.BackColor = Shared.preferences.colorAccent1;
+        });
+        this.progressBar.Invoke((MethodInvoker)delegate
+        {
+            progressLabel.BackColor = Shared.preferences.colorAccent1;
+        });
+        download_p(url.ToString(), destinationDirectory, canConvert);
+    }
+
     public void download(string url, string destinationDirectory, bool canConvert)
     {
         this.videoID = getVideoID(url);
-        string path = Path.Combine(Preferences.tempDirectoy, videoID + ".info.json");
+        string path = Path.Combine(Shared.preferences.tempDirectoy, videoID + ".info.json");
         //check if the output file is already on disk
         bool outputFileExists = false;
         if (System.IO.File.Exists(path))
@@ -379,7 +419,7 @@ class DownloadContainer : Panel
             infoJSON = JObject.Parse(System.IO.File.ReadAllText(path));
             string outputFilename = "";
             outputFilename = getValidFileName(infoJSON.GetValue("fulltitle").ToString());
-            if(System.IO.File.Exists(Path.Combine(Preferences.downloadsDirectory, outputFilename + ".mp3")))
+            if(System.IO.File.Exists(Path.Combine(Shared.preferences.downloadsDirectory, outputFilename + ".mp3")))
             {
                 outputFileExists = true;
             }
@@ -391,7 +431,7 @@ class DownloadContainer : Panel
             updateProgress(1);
             this.progressLabel.Invoke((MethodInvoker)delegate
             {
-                progressLabel.BackColor = Preferences.colorAccent4;
+                progressLabel.BackColor = Shared.preferences.colorAccent4;
                 progressLabel.Text = "Already on disk";
             });
             animateProgress.Stop();
@@ -404,7 +444,7 @@ class DownloadContainer : Panel
             string filename = infoJSON.GetValue("display_id").ToString();
             this.thumbnail.Invoke((MethodInvoker)delegate
             {
-                thumbnail.Image = getImage(Path.Combine(Preferences.tempDirectoy, filename + imageExtension));
+                thumbnail.Image = getImage(Path.Combine(Shared.preferences.tempDirectoy, filename + imageExtension));
             });
         }
         else
@@ -439,9 +479,9 @@ class DownloadContainer : Panel
     {
         //animateProgress.Start();
 
-        if (Directory.Exists(Preferences.tempDirectoy) == false)
+        if (Directory.Exists(Shared.preferences.tempDirectoy) == false)
         {
-            Directory.CreateDirectory(Preferences.tempDirectoy);
+            Directory.CreateDirectory(Shared.preferences.tempDirectoy);
         }
         if (Directory.Exists(destinationDirectory) == false)
         {
@@ -454,12 +494,12 @@ class DownloadContainer : Panel
         {
             if (canConvert)
             {
-                //arguments = "--extract-audio --audio-format mp3 " + "-o \"" + Path.Combine(Preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
-                arguments = "--extract-audio " + "-o \"" + Path.Combine(Preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
+                //arguments = "--extract-audio --audio-format mp3 " + "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
+                arguments = "--extract-audio " + "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
             }
             else
             {
-                arguments = "-o \"" + Path.Combine(Preferences.tempDirectoy, videoID + ".%(ext)s"/*, "%(title)s - %(id)s.%(ext)s"*/) + "\" " + url + " --write-thumbnail --write-info-json";
+                arguments = "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s"/*, "%(title)s - %(id)s.%(ext)s"*/) + "\" " + url + " --write-thumbnail --write-info-json";
             }
             singleDownload.StartInfo.FileName = @"youtube-dl.exe";
             singleDownload.StartInfo.Arguments = arguments;
@@ -503,7 +543,7 @@ class DownloadContainer : Panel
             }
             else if (data.Contains("[info]"))
             {
-                string path = Path.Combine(Preferences.tempDirectoy, videoID + ".info.json");
+                string path = Path.Combine(Shared.preferences.tempDirectoy, videoID + ".info.json");
                 while (System.IO.File.Exists(path) == false)
                 {
                     Application.DoEvents();
@@ -521,7 +561,7 @@ class DownloadContainer : Panel
                 imageExtension = getExtension(fileURL);
                 this.thumbnail.Invoke((MethodInvoker)delegate
                 {
-                    thumbnail.Image = getImage(Path.Combine(Preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
+                    thumbnail.Image = getImage(Path.Combine(Shared.preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
                 });
             }
             else if(data.Contains("[ffmpeg] Destination: "))
@@ -541,7 +581,27 @@ class DownloadContainer : Panel
     private void SingleDownload_Exited(object sender, EventArgs e)
     {
         status = Status.DownloadExited;
-        encodeOutput();
+        if(progress == 1)
+        {
+            encodeOutput();
+        }
+        else // something unexpected happened - report it
+        {
+            status = Status.Done;
+            success = false;
+            animateProgress.Stop();
+            updateProgress(1);
+            this.progressLabel.Invoke((MethodInvoker)delegate
+            {
+                progressLabel.Cursor = Cursors.Hand;
+                this.progressLabel.Text = "❌ Failed - Click here to retry";
+                progressLabel.BackColor = Shared.preferences.colorAccent4;
+            });
+            this.title.Invoke((MethodInvoker)delegate
+            {
+                this.title.Text = url.ToString();
+            });
+        }
     }
 
     private void encodeOutput()
@@ -551,7 +611,7 @@ class DownloadContainer : Panel
         singleEncoder = new Process();
         {
             string newPath = dlOutputPath.Substring(0, dlOutputPath.LastIndexOf("."));
-            arguments = "-v debug -i " + dlOutputPath /*Path.Combine(Preferences.tempDirectoy, videoID) + ".webm"*/ + " -f mp3 " + /*Path.Combine(Preferences.downloadsDirectory, videoID)*//* + ".mp3"*/newPath + ".mp3";
+            arguments = "-v debug -i " + dlOutputPath /*Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".webm"*/ + " -f mp3 " + /*Path.Combine(Shared.preferences.downloadsDirectory, videoID)*//* + ".mp3"*/newPath + ".mp3";
             singleEncoder.StartInfo.FileName = @"ffmpeg.exe";
             singleEncoder.StartInfo.Arguments = arguments;
             singleEncoder.StartInfo.CreateNoWindow = true;
@@ -568,8 +628,8 @@ class DownloadContainer : Panel
             status = Status.Enconding;
             this.progressLabel.Invoke((MethodInvoker)delegate
             {
-                progressLabel.BackColor = Preferences.colorAccent3;
-                progressBar.BackColor = Preferences.colorAccent3;
+                progressLabel.BackColor = Shared.preferences.colorAccent3;
+                progressBar.BackColor = Shared.preferences.colorAccent3;
             });
             progress = 0;
             updateProgress(0);
@@ -639,8 +699,8 @@ class DownloadContainer : Panel
 
         try
         {
-            TagLib.File soundFile = TagLib.File.Create(Path.Combine(Preferences.tempDirectoy, videoID + ".mp3"));
-            IPicture albumArt = new Picture(Path.Combine(Preferences.tempDirectoy, videoID + imageExtension));
+            TagLib.File soundFile = TagLib.File.Create(Path.Combine(Shared.preferences.tempDirectoy, videoID + ".mp3"));
+            IPicture albumArt = new Picture(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension));
             soundFile.Tag.Pictures = new IPicture[1] { albumArt };
             soundFile.Tag.Comment = videoID;
             soundFile.Save();
@@ -653,7 +713,7 @@ class DownloadContainer : Panel
         {
             string outputPath = Path.Combine(destinationDirectory, outputFileName + ".mp3");
             status = Status.WritingOutput;
-            System.IO.File.Move(Path.Combine(Preferences.tempDirectoy, videoID) + ".mp3", outputPath);
+            System.IO.File.Move(Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".mp3", outputPath);
             if (System.IO.File.Exists(outputPath))
             {
                 success = true;
@@ -666,7 +726,7 @@ class DownloadContainer : Panel
         catch (Exception ex) { }
         try
         {
-            System.IO.File.Delete(Path.Combine(Preferences.tempDirectoy, videoID) + ".mp3");
+            System.IO.File.Delete(Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".mp3");
         }
         catch (Exception ex) { }
         try
@@ -678,7 +738,7 @@ class DownloadContainer : Panel
         HistoryItem hi = new HistoryItem();
         //EXAMPLE : Path.GetFullPath((new Uri(absolute_path)).LocalPath);
         hi.path_output = Path.GetFullPath(Path.Combine(destinationDirectory, outputFileName + ".mp3"));
-        hi.path_thumbnail = Path.GetFullPath(Path.Combine(Preferences.tempDirectoy, videoID + imageExtension));
+        hi.path_thumbnail = Path.GetFullPath(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension));
         hi.title = infoJSON.GetValue("fulltitle").ToString();
         hi.url = infoJSON.GetValue("webpage_url").ToString();
         hi.time_created_UTC = DateTime.UtcNow;
@@ -689,11 +749,18 @@ class DownloadContainer : Panel
 
         this.progressLabel.Invoke((MethodInvoker)delegate
         {
-            this.progressLabel.Text = "✔";
-            progressLabel.BackColor = Preferences.colorAccent4;
+            if (success)
+            {
+                this.progressLabel.Text = "✔";
+            }
+            else
+            {
+                this.progressLabel.Text = "❌ Try downloading again";
+            }
+            progressLabel.BackColor = Shared.preferences.colorAccent4;
         });
 
-        System.IO.File.WriteAllText(Path.Combine(Preferences.tempDirectoy, videoID) + ".txt", processOutput.ToString());
+        System.IO.File.WriteAllText(Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".txt", processOutput.ToString());
         status = Status.Done;
     }
 
@@ -781,7 +848,7 @@ class DownloadContainer : Panel
     // video ze obstaja v tempu nastavi vrednosti UI-ja in ustrezno zakljuci process/thread
     private bool videoExists()
     {
-        if (System.IO.File.Exists(Path.Combine(Preferences.tempDirectoy, ".info.json")))
+        if (System.IO.File.Exists(Path.Combine(Shared.preferences.tempDirectoy, ".info.json")))
         {
             return true;
         }
@@ -793,7 +860,7 @@ class DownloadContainer : Panel
     private bool growing = true;
     private bool canAnimateThumbnail = true;
     private int perSide = 1; // 8
-    private Color c1 = Preferences.colorAccent1;
+    private Color c1 = Shared.preferences.colorAccent1;
     private Image getImageFrame()
     {
         for (int i = 0; i < 100; i++)
@@ -900,7 +967,7 @@ class DownloadContainer : Panel
         }
         else
         {
-            Process.Start(Path.Combine(Preferences.tempDirectoy, videoID) + imageExtension);
+            Process.Start(Path.Combine(Shared.preferences.tempDirectoy, videoID) + imageExtension);
         }
     }
 }

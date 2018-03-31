@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 
-class Shared
+public class Shared
 {
     public static object lockHistory = new object();
     [JsonProperty]
@@ -17,6 +17,7 @@ class Shared
 
     // shared preferences variable
     public static Preferences preferences = new Preferences(); // preferences object
+
 
     // resources
     public static readonly string resourcesWebsiteURL = "https://robertbarachini.github.io/projects/Lyre/resources/";
