@@ -88,6 +88,7 @@ class DownloadContainer : Panel
     private bool finished = false;
     private Status status;
     private string dlOutputPath;
+    private string outputPath;
 
     public DownloadContainer()
     {
@@ -316,10 +317,17 @@ class DownloadContainer : Panel
 
     private void ProgressLabel_Click(object sender, EventArgs e)
     {
-        if(status == Status.Done && success == false)
+        if(status == Status.Done)
         {
-            this.Cursor = Cursors.Default;
-            retryDownload();
+            if(success)
+            {
+                Process.Start(outputPath);
+            }
+            else
+            {
+                this.Cursor = Cursors.Default;
+                retryDownload();
+            }
         }
     }
 
@@ -611,7 +619,7 @@ class DownloadContainer : Panel
         singleEncoder = new Process();
         {
             string newPath = dlOutputPath.Substring(0, dlOutputPath.LastIndexOf("."));
-            arguments = "-v debug -i " + dlOutputPath /*Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".webm"*/ + " -f mp3 " + /*Path.Combine(Shared.preferences.downloadsDirectory, videoID)*//* + ".mp3"*/newPath + ".mp3";
+            arguments = "-v debug -i " + dlOutputPath /*Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".webm"*/ + " -f mp3 -b:a 320k " + /*Path.Combine(Shared.preferences.downloadsDirectory, videoID)*//* + ".mp3"*/newPath + ".mp3";
             singleEncoder.StartInfo.FileName = @"ffmpeg.exe";
             singleEncoder.StartInfo.Arguments = arguments;
             singleEncoder.StartInfo.CreateNoWindow = true;
@@ -711,7 +719,7 @@ class DownloadContainer : Panel
         outputFileName = getValidFileName(outputFileName);
         try
         {
-            string outputPath = Path.Combine(destinationDirectory, outputFileName + ".mp3");
+            outputPath = Path.Combine(destinationDirectory, outputFileName + ".mp3");
             status = Status.WritingOutput;
             System.IO.File.Move(Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".mp3", outputPath);
             if (System.IO.File.Exists(outputPath))
@@ -752,6 +760,7 @@ class DownloadContainer : Panel
             if (success)
             {
                 this.progressLabel.Text = "✔";
+                this.progressLabel.Cursor = Cursors.Hand;
             }
             else
             {
