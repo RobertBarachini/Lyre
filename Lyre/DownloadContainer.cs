@@ -75,6 +75,7 @@ class DownloadContainer : Panel
     private Process singleDownload;
     private Process singleEncoder;
     private JObject infoJSON;
+    private JObject mainJSON;
     private string videoID;
     private string destinationDirectory;
     private string imageExtension;
@@ -593,7 +594,11 @@ class DownloadContainer : Panel
     private void SingleDownload_Exited(object sender, EventArgs e)
     {
         status = Status.DownloadExited;
-        System.IO.File.WriteAllText("crashlog.txt", processOutput.ToString());
+        //System.IO.File.WriteAllText("crashlog.txt", processOutput.ToString());
+
+        // Construct the start of mainJSON
+        constructMainJSON(0);
+
         if(progress == 1)
         {
             encodeOutput();
@@ -647,6 +652,88 @@ class DownloadContainer : Panel
             progress = 0;
             updateProgress(0);
         }
+    }
+
+    private void constructMainJSON(int stage)
+    {
+        if (stage == 0)
+        {
+            mainJSON = new JObject();
+            string propertyName = "";
+            //
+            propertyName = "uploader";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "title";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "fulltitle";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "uploader_id";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            //
+            propertyName = "player_url";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "webpage_url";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "uploader_url";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "display_id";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "id";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "url";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "webpage_url_basename";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "protocol";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            //
+            propertyName = "description";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "thumbnail";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "_filename";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            //
+            propertyName = "filesize";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "duration";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "view_count";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "average_count";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "like_count";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "dislike_count";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "upload_date";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            //
+            propertyName = "license";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "format";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "format_note";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "ext";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "acodec";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "vcodec";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            //
+            propertyName = "thumbnails";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "categories";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            propertyName = "tags";
+            mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
+            //////
+
+        }
+
+        string jsonString = JsonConvert.SerializeObject(mainJSON, Formatting.Indented);
+        System.IO.File.WriteAllText(Path.Combine(Shared.preferences.tempDirectoy, videoID + ".main.json"), jsonString);
     }
 
     private string duration;
