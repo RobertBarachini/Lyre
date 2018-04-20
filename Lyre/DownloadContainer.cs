@@ -576,6 +576,10 @@ class DownloadContainer : Panel
             {
                 dlOutputPath = data.Substring("[ffmpeg] Destination: ".Length);
             }
+            else if(data.Contains("[download] Destination: "))
+            {
+                dlOutputPath = data.Substring("[download] Destination: ".Length);
+            }
             else
             {
                 // TO BE IMPLEMENTED
@@ -589,6 +593,7 @@ class DownloadContainer : Panel
     private void SingleDownload_Exited(object sender, EventArgs e)
     {
         status = Status.DownloadExited;
+        System.IO.File.WriteAllText("crashlog.txt", processOutput.ToString());
         if(progress == 1)
         {
             encodeOutput();
