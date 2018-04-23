@@ -65,7 +65,10 @@ namespace Lyre
                 //preferences = new Preferences();
             }
             InitComponents();
-            loadDlQueue();
+            if (resourcesMissingCount == 0)
+            {
+                loadDlQueue();
+            }
             ResizeComponents();
             //this.Show();
             if (resourcesMissingCount > 0)
