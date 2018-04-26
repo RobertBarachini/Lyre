@@ -14,10 +14,11 @@ public class Shared
     public static readonly string filenameHistory = "history.json";
     public static readonly string filenameDlQueue = "downloadsQueue.json";
     public static string filePreferences = "preferences.json";
+    // debug mode - print process output, ...
+    public static bool debugMode = false; // true = debug mode enabled
 
     // shared preferences variable
     public static Preferences preferences = new Preferences(); // preferences object
-
 
     // resources
     public static readonly string resourcesWebsiteURL = "https://robertbarachini.github.io/projects/Lyre/resources/";

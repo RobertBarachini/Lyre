@@ -30,7 +30,9 @@ namespace Lyre
 
         //public static Preferences preferences; // preferences object
 
-        // Controls
+        //
+        ////  Controls
+        //
         private Panel ccContainer;
         private Panel ccTopBar;
         private Panel ccDownloadsContainer;
@@ -42,6 +44,14 @@ namespace Lyre
         private Label ccHint;
         private Panel ccSettings;
         private RichTextBox ccResourceDownloaderLog;
+
+        // Status Bar
+        private Panel ccStatusBar;
+        private Label ccDownloadsText;
+        private Label ccDownloadsValue;
+        private Label ccActiveDownloadsText;
+        private Label ccActiveDownloadsValue;
+
 
         private object resourcesMissingCountLock = new object();
         private int resourcesMissingCount;
@@ -311,6 +321,54 @@ namespace Lyre
             ccSettings.Click += CcSettings_Click;
             ccSettings.Visible = false;
 
+            // Status Bar
+            ccStatusBar = new Panel();
+            ccStatusBar.Parent = ccContainer;
+            ccContainer.Controls.Add(ccStatusBar);
+            ccStatusBar.BackColor = Shared.preferences.colorBackground;
+            ccStatusBar.BringToFront();
+
+            ccDownloadsText = new Label();
+            ccDownloadsText.Parent = ccStatusBar;
+            ccStatusBar.Controls.Add(ccDownloadsText);
+            ccDownloadsText.BackColor = ccStatusBar.BackColor;
+            ccDownloadsText.ForeColor = Color.White;
+            ccDownloadsText.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
+            ccDownloadsText.Text = "Downloads:";
+            ccDownloadsText.TextAlign = ContentAlignment.MiddleLeft;
+            ccDownloadsText.AutoSize = true;
+
+            ccDownloadsValue = new Label();
+            ccDownloadsValue.Parent = ccStatusBar;
+            ccStatusBar.Controls.Add(ccDownloadsValue);
+            ccDownloadsValue.BackColor = ccStatusBar.BackColor;
+            ccDownloadsValue.ForeColor = Shared.preferences.colorAccent2;
+            ccDownloadsValue.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
+            ccDownloadsValue.Text = "0 / 0";
+            ccDownloadsValue.TextAlign = ContentAlignment.MiddleLeft;
+            ccDownloadsValue.AutoSize = true;
+
+            ccActiveDownloadsText = new Label();
+            ccActiveDownloadsText.Parent = ccStatusBar;
+            ccStatusBar.Controls.Add(ccActiveDownloadsText);
+            ccActiveDownloadsText.BackColor = ccStatusBar.BackColor;
+            ccActiveDownloadsText.ForeColor = Color.White;
+            ccActiveDownloadsText.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
+            ccActiveDownloadsText.Text = "Active downloads:";
+            ccActiveDownloadsText.TextAlign = ContentAlignment.MiddleLeft;
+            ccActiveDownloadsText.AutoSize = true;
+
+            ccActiveDownloadsValue = new Label();
+            ccActiveDownloadsValue.Parent = ccStatusBar;
+            ccStatusBar.Controls.Add(ccActiveDownloadsValue);
+            ccActiveDownloadsValue.BackColor = ccStatusBar.BackColor;
+            ccActiveDownloadsValue.ForeColor = Shared.preferences.colorAccent2;
+            ccActiveDownloadsValue.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
+            ccActiveDownloadsValue.Text = "0 / 0";
+            ccActiveDownloadsValue.TextAlign = ContentAlignment.MiddleLeft;
+            ccActiveDownloadsValue.AutoSize = true;
+
+            // Resource Downloader (debug oriented)
             ccResourceDownloaderLog = new RichTextBox();
             ccResourceDownloaderLog.Parent = ccDownloadsContainer;
             ccDownloadsContainer.Controls.Add(ccResourceDownloaderLog);
@@ -445,7 +503,27 @@ namespace Lyre
             ccSettings.Width = ccDownloadsDirectory.Width;
             ccSettings.Height = ccDownloadsDirectory.Height;
 
+            // status bar
+            ccStatusBar.Top = ccSettings.Top + ccSettings.Height + 50;
+            ccStatusBar.Height = 70;
+            ccStatusBar.Left = 50;
+            ccStatusBar.Width = ccContainer.Width - (2 * ccStatusBar.Left);
 
+            ccDownloadsText.Top = 18;
+            ccDownloadsValue.Top = ccDownloadsText.Top;
+            ccActiveDownloadsText.Top = ccDownloadsText.Top;
+            ccActiveDownloadsValue.Top = ccDownloadsText.Top;
+            ccDownloadsText.Left = 30;
+            ccDownloadsValue.Left = ccDownloadsText.Left + ccDownloadsText.Width + 5;
+            ccActiveDownloadsText.Left = ccDownloadsValue.Left + ccDownloadsValue.Width + 30;
+            ccActiveDownloadsValue.Left = ccActiveDownloadsText.Left + ccActiveDownloadsText.Width + 5;
+            ccDownloadsText.Height = ccStatusBar.Height;
+            ccDownloadsValue.Height = ccDownloadsText.Height;
+            ccActiveDownloadsText.Height = ccDownloadsText.Height;
+            ccActiveDownloadsValue.Height = ccDownloadsText.Height;
+
+
+            // download containers
             if (DownloadContainer.getDownloadsAccess().Count > 0)
             {
                 resizeDcMain();
@@ -459,7 +537,7 @@ namespace Lyre
             try
             {
                 dcMain = DownloadContainer.getDownloadsAccess().First.Value;
-                dcMain.Top = 30;
+                dcMain.Top = ccStatusBar.Top + ccStatusBar.Height - ccDownloadsContainer.Top + 30; //30;
                 dcMain.Left = 50;
                 dcMain.Width = ccDownloadsContainer.Width - (dcMain.Left * 2);
                 dcMain.Height = 100;
@@ -558,6 +636,7 @@ namespace Lyre
                     {
                         break;
                     }
+
                     // youtube video_IDs are currently 11 chars long
                     string hit = clipboardString.Substring(index, pattern.Length + 11);
                     clipboardString = clipboardString.Substring(index + pattern.Length + 11);

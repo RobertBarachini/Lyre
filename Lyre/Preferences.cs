@@ -32,7 +32,7 @@ public class Preferences // Preferences / Settings / Defaults
     [JsonProperty]
     public Font fontDefault = new Font(new FontFamily("Segoe UI"), 14, GraphicsUnit.Pixel); // Default font
     [JsonProperty]
-    public int formWidth = 1000;
+    public int formWidth = 1100;
     [JsonProperty]
     public int formHeight = 660;
     [JsonProperty]
@@ -43,4 +43,8 @@ public class Preferences // Preferences / Settings / Defaults
     public string tempDirectoy = "temp";
     [JsonProperty]
     public string downloadsDirectory = "downloads";
+    [JsonProperty]
+    public int maxActiveProcesses = 3;
+    [JsonProperty]
+    public int maxDownloadContainerControls = 10;
 }

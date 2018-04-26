@@ -34,7 +34,7 @@ class DownloadContainer : Panel
     private static LinkedList<DownloadContainer> downloadsQueue = new LinkedList<DownloadContainer>();
     private static object activeProcessesLock = new object();
     private static int activeProcesses = 0;
-    private static int maxActiveProcesses = 3; // 3
+    //private static int maxActiveProcesses = 3; - moved to Preferences.cs
     private LinkedListNode<DownloadContainer> downloadNode;
     private static System.Windows.Forms.Timer downloadsHandler = new System.Windows.Forms.Timer();
 
@@ -155,7 +155,7 @@ class DownloadContainer : Panel
     {
         lock (activeProcessesLock)
         {
-            if (activeProcesses < maxActiveProcesses)
+            if (activeProcesses < Shared.preferences.maxActiveProcesses)
             {
                 downloadsHandler.Stop();
 
@@ -181,7 +181,7 @@ class DownloadContainer : Panel
                             activeProcesses++;
                             dc.downloadStarted = true;
 
-                            if (activeProcesses == maxActiveProcesses)
+                            if (activeProcesses == Shared.preferences.maxActiveProcesses)
                             {
                                 break;
                             }
@@ -600,10 +600,18 @@ class DownloadContainer : Panel
             {
                 infoJSON = JObject.Parse(System.IO.File.ReadAllText(path));
             }
+            else
+            {
+                reportDownloadError();
+            }
         }
 
         status = Status.DownloadExited;
-        System.IO.File.WriteAllText("crashlogDowExi.txt", processOutput.ToString());
+
+        if (Shared.debugMode)
+        {
+            System.IO.File.WriteAllText("crashlogDowExi.txt", processOutput.ToString());
+        }
 
         // Construct the start of mainJSON
         constructMainJSON(0);
@@ -614,21 +622,26 @@ class DownloadContainer : Panel
         }
         else // something unexpected happened - report it
         {
-            status = Status.Done;
-            success = false;
-            animateProgress.Stop();
-            updateProgress(1);
-            this.progressLabel.Invoke((MethodInvoker)delegate
-            {
-                progressLabel.Cursor = Cursors.Hand;
-                this.progressLabel.Text = "❌ Failed - Click here to retry";
-                progressLabel.BackColor = Shared.preferences.colorAccent4;
-            });
-            this.title.Invoke((MethodInvoker)delegate
-            {
-                this.title.Text = url.ToString();
-            });
+            reportDownloadError();
         }
+    }
+
+    private void reportDownloadError()
+    {
+        status = Status.Done;
+        success = false;
+        animateProgress.Stop();
+        updateProgress(1);
+        this.progressLabel.Invoke((MethodInvoker)delegate
+        {
+            progressLabel.Cursor = Cursors.Hand;
+            this.progressLabel.Text = "❌ Failed - Click here to retry";
+            progressLabel.BackColor = Shared.preferences.colorAccent4;
+        });
+        this.title.Invoke((MethodInvoker)delegate
+        {
+            this.title.Text = url.ToString();
+        });
     }
 
     private void encodeOutput()
@@ -638,7 +651,7 @@ class DownloadContainer : Panel
         singleEncoder = new Process();
         {
             string newPath = dlOutputPath.Substring(0, dlOutputPath.LastIndexOf("."));
-            arguments = "-v debug -i \"" + dlOutputPath /*Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".webm"*/ + "\" -f mp3 -b:a 320k \"" + /*Path.Combine(Shared.preferences.downloadsDirectory, videoID)*//* + ".mp3"*/newPath + ".mp3\"";
+            arguments = "-v debug -i \"" + dlOutputPath /*Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".webm"*/ + "\" -f mp3 -b:a 320k \"" + /*Path.Combine(Shared.preferences.downloadsDirectory, videoID)*//* + ".mp3"*/newPath + ".mp3\" -y";
             singleEncoder.StartInfo.FileName = @"ffmpeg.exe";
             singleEncoder.StartInfo.Arguments = arguments;
             singleEncoder.StartInfo.CreateNoWindow = true;
@@ -782,7 +795,11 @@ class DownloadContainer : Panel
 
     private void SingleEncoder_OutputDataReceived(object sender, DataReceivedEventArgs e)
     {
-        System.IO.File.WriteAllText("crashlogEncOUT.txt", processOutput.ToString());
+        if (Shared.debugMode)
+        {
+            System.IO.File.WriteAllText("crashlogEncOUT.txt", processOutput.ToString());
+        }
+
         if (e.Data != null)
         {
             processOutput.Append("STD_OUT: " + e.Data + Environment.NewLine);
@@ -792,7 +809,11 @@ class DownloadContainer : Panel
     private void SingleEncoder_Exited(object sender, EventArgs e)
     {
         status = Status.EndocingExited;
-        System.IO.File.WriteAllText("crashlog.txt", processOutput.ToString());
+
+        if (Shared.debugMode)
+        {
+            System.IO.File.WriteAllText("crashlog.txt", processOutput.ToString());
+        }
 
         finished = true;
         animateProgress.Stop();

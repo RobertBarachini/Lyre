@@ -18,7 +18,6 @@ namespace Lyre
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
             Preferences p = new Preferences();
-
         }
     }
 }
