@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Threading;
 using System.Reflection;
@@ -558,9 +559,28 @@ namespace Lyre
                         break;
                     }
                     // youtube video_IDs are currently 11 chars long
-                    string hit = clipboardString.Substring(index, pattern.Length + 11); 
-                    hits.AddLast(hit);
+                    string hit = clipboardString.Substring(index, pattern.Length + 11);
                     clipboardString = clipboardString.Substring(index + pattern.Length + 11);
+                    if (clipboardString.Length >= "&list=".Length + 34 && clipboardString.Substring(0, "&list=".Length).Equals("&list=")) // 34 current list_ID length
+                    {
+                        //hit += clipboardString.Substring(0, "&list=".Length + 34);
+                        string listHit = clipboardString.Substring(0, "&list=".Length + 34);
+                        // youtube-dl --flat-playlist -j "https://www.youtube.com/list=PLSdoVPM5Wnne47ib65gVG206M7qp43us-"
+                        // start youtube-dl process - get individual video IDs on process exit
+                        Process singleDownload = new Process();
+                        string arguments = "--flat-playlist -j \"" + hit + listHit + "\"";
+                        singleDownload.StartInfo.FileName = @"youtube-dl.exe";
+                        singleDownload.StartInfo.Arguments = arguments;
+                        singleDownload.StartInfo.CreateNoWindow = true;
+                        singleDownload.StartInfo.UseShellExecute = false;
+                        singleDownload.StartInfo.RedirectStandardOutput = true;
+                        singleDownload.OutputDataReceived += SingleDownload_OutputDataReceived;
+                        singleDownload.EnableRaisingEvents = true;
+                        singleDownload.Exited += SingleDownload_Exited; ;
+                        singleDownload.Start();
+                        singleDownload.BeginOutputReadLine();
+                    }
+                    hits.AddLast(hit);
                     counter++;
                 }
                 foreach (string l in hits)
@@ -581,6 +601,36 @@ namespace Lyre
                 {
                     this.FormBorderStyle = FormBorderStyle.None;
                     this.WindowState = FormWindowState.Maximized;
+                }
+            }
+        }
+
+        private void SingleDownload_Exited(object sender, EventArgs e)
+        {
+            // DO NOTHING ?
+        }
+
+        private void SingleDownload_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            if (e.Data == null)
+            {
+                return;
+            }
+           
+            string dataString = e.Data.ToString();
+            if (dataString.Length > 0)
+            {
+                if(dataString.Substring(0, 1).Equals("{"))
+                {
+                    JObject jsonO = JObject.Parse(dataString);
+                    string url = "https://www.youtube.com/watch?v=";
+                    url += jsonO.GetValue("id");
+                    int stop = 0;
+                    //newDownload(url);
+                    this.Invoke((MethodInvoker)delegate
+                    {
+                        newDownload(url);
+                    });
                 }
             }
         }

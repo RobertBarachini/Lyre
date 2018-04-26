@@ -593,8 +593,17 @@ class DownloadContainer : Panel
 
     private void SingleDownload_Exited(object sender, EventArgs e)
     {
+        string path = Path.Combine(Shared.preferences.tempDirectoy, videoID + ".info.json");
+        if (infoJSON == null)
+        {
+            if (System.IO.File.Exists(path))
+            {
+                infoJSON = JObject.Parse(System.IO.File.ReadAllText(path));
+            }
+        }
+
         status = Status.DownloadExited;
-        //System.IO.File.WriteAllText("crashlog.txt", processOutput.ToString());
+        System.IO.File.WriteAllText("crashlogDowExi.txt", processOutput.ToString());
 
         // Construct the start of mainJSON
         constructMainJSON(0);
@@ -629,7 +638,7 @@ class DownloadContainer : Panel
         singleEncoder = new Process();
         {
             string newPath = dlOutputPath.Substring(0, dlOutputPath.LastIndexOf("."));
-            arguments = "-v debug -i " + dlOutputPath /*Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".webm"*/ + " -f mp3 -b:a 320k " + /*Path.Combine(Shared.preferences.downloadsDirectory, videoID)*//* + ".mp3"*/newPath + ".mp3";
+            arguments = "-v debug -i \"" + dlOutputPath /*Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".webm"*/ + "\" -f mp3 -b:a 320k \"" + /*Path.Combine(Shared.preferences.downloadsDirectory, videoID)*//* + ".mp3"*/newPath + ".mp3\"";
             singleEncoder.StartInfo.FileName = @"ffmpeg.exe";
             singleEncoder.StartInfo.Arguments = arguments;
             singleEncoder.StartInfo.CreateNoWindow = true;
@@ -773,6 +782,7 @@ class DownloadContainer : Panel
 
     private void SingleEncoder_OutputDataReceived(object sender, DataReceivedEventArgs e)
     {
+        System.IO.File.WriteAllText("crashlogEncOUT.txt", processOutput.ToString());
         if (e.Data != null)
         {
             processOutput.Append("STD_OUT: " + e.Data + Environment.NewLine);
@@ -782,6 +792,7 @@ class DownloadContainer : Panel
     private void SingleEncoder_Exited(object sender, EventArgs e)
     {
         status = Status.EndocingExited;
+        System.IO.File.WriteAllText("crashlog.txt", processOutput.ToString());
 
         finished = true;
         animateProgress.Stop();
