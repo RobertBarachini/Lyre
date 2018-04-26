@@ -44,7 +44,7 @@ public class Preferences // Preferences / Settings / Defaults
     [JsonProperty]
     public string downloadsDirectory = "downloads";
     [JsonProperty]
-    public int maxActiveProcesses = 3;
+    public int maxActiveProcesses = 2; // 3
     [JsonProperty]
-    public int maxDownloadContainerControls = 10;
+    public int maxDownloadContainerControls = 5; // 10
 }

@@ -43,7 +43,7 @@ class DownloadContainer : Panel
         return url.ToString();
     }
 
-    public int getActiveProcessesAccess()
+    public static int getActiveProcessesCount()
     {
         lock(activeProcessesLock)
         {
@@ -58,6 +58,15 @@ class DownloadContainer : Panel
             return downloads;
         }
     }
+
+    public static int getDownloadsQueueCount()
+    {
+        lock(downloadsQueueLock)
+        {
+            return downloadsQueue.Count;
+        }
+    }
+
 
     public bool isFinished()
     {

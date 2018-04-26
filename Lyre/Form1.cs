@@ -55,6 +55,9 @@ namespace Lyre
 
         private object resourcesMissingCountLock = new object();
         private int resourcesMissingCount;
+        private Queue<string> downloadsPreQueue = new Queue<string>();
+        private System.Windows.Forms.Timer timerStatusUpdater;
+        private System.Windows.Forms.Timer timerPreQueueHandler;
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -86,7 +89,61 @@ namespace Lyre
             {
                 getResources();
             }
+
+            timerStatusUpdater = new System.Windows.Forms.Timer();
+            timerStatusUpdater.Interval = 1000;
+            timerStatusUpdater.Tick += TimerStatusUpdater_Tick;
+            timerStatusUpdater.Start();
+
+            timerPreQueueHandler = new System.Windows.Forms.Timer();
+            timerPreQueueHandler.Interval = 1000;
+            timerPreQueueHandler.Tick += TimerPreQueueHandler_Tick;
+            timerPreQueueHandler.Start();
+
             this.BringToFront();
+        }
+
+        private void TimerPreQueueHandler_Tick(object sender, EventArgs e)
+        {
+            handlePreQueue();
+        }
+
+        private void handlePreQueue()
+        {
+            int downloadsActive = DownloadContainer.getActiveProcessesCount();
+            int downloadsInQueue = DownloadContainer.getDownloadsQueueCount();
+
+            int downloadsOngoing = downloadsActive + downloadsInQueue;
+            while(downloadsOngoing < Shared.preferences.maxDownloadContainerControls)
+            {
+                if(downloadsPreQueue.Count == 0)
+                {
+                    break;
+                }
+                string newVideoID = downloadsPreQueue.Dequeue();
+                newDownload(newVideoID);
+                Application.DoEvents();
+                downloadsOngoing++;
+            }
+        }
+
+        private void TimerStatusUpdater_Tick(object sender, EventArgs e)
+        {
+            updateStatusBar();
+        }
+
+        private void updateStatusBar()
+        {
+            int downloadsActive = DownloadContainer.getActiveProcessesCount();
+            int downloadsInQueue = DownloadContainer.getDownloadsQueueCount();
+            int downloadsInPreQueue = downloadsPreQueue.Count;
+
+            int downloadsUnfinished = downloadsActive + downloadsInQueue + downloadsInPreQueue;
+            int maximumControls = Shared.preferences.maxDownloadContainerControls;
+            int maximumActive = Shared.preferences.maxActiveProcesses;
+
+            ccDownloadsValue.Text = downloadsUnfinished.ToString() + " / " + maximumControls.ToString();
+            ccActiveDownloadsValue.Text = downloadsActive.ToString() + " / " + maximumActive.ToString();
         }
 
         private int getResourcesMissingCount()
@@ -221,6 +278,10 @@ namespace Lyre
                     //{
 
                     //}
+                }
+                foreach (string s in downloadsPreQueue)
+                {
+                    urls.AddLast(s);
                 }
                 saveJSON(Shared.filenameDlQueue, urls);
             }
@@ -664,8 +725,9 @@ namespace Lyre
                 }
                 foreach (string l in hits)
                 {
+                    downloadsPreQueue.Enqueue(l);
                     Application.DoEvents();
-                    newDownload(l);
+                    //newDownload(l);
                 }
                 copyPasteDown = true;
             }
