@@ -249,7 +249,8 @@ namespace Lyre
             {
                 foreach (string s in urls)
                 {
-                    newDownload(s);
+                    //newDownload(s);
+                    downloadsPreQueue.Enqueue(s);
                 }
             }
         }
