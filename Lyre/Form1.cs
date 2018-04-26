@@ -105,7 +105,9 @@ namespace Lyre
 
         private void TimerPreQueueHandler_Tick(object sender, EventArgs e)
         {
+            timerPreQueueHandler.Stop();
             handlePreQueue();
+            timerPreQueueHandler.Start();
         }
 
         private void handlePreQueue()
@@ -122,7 +124,7 @@ namespace Lyre
                 }
                 string newVideoID = downloadsPreQueue.Dequeue();
                 newDownload(newVideoID);
-                Application.DoEvents();
+                //Application.DoEvents();
                 downloadsOngoing++;
             }
         }
@@ -770,7 +772,8 @@ namespace Lyre
                     //newDownload(url);
                     this.Invoke((MethodInvoker)delegate
                     {
-                        newDownload(url);
+                        //newDownload(url);
+                        downloadsPreQueue.Enqueue(url);
                     });
                 }
             }
