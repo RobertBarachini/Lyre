@@ -72,6 +72,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CcToggle.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="DownloadContainer.cs">
       <SubType>Component</SubType>
     </Compile>

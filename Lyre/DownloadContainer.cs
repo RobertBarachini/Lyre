@@ -43,6 +43,17 @@ class DownloadContainer : Panel
         return url.ToString();
     }
 
+    public static void removeAllControls()
+    {
+        lock (downloadsLock)
+        {
+            foreach (DownloadContainer dlC in downloads)
+            {
+                dlC.removeThis();
+            }
+        }
+    }
+
     public static int getActiveProcessesCount()
     {
         lock(activeProcessesLock)
@@ -135,7 +146,8 @@ class DownloadContainer : Panel
         Enconding,
         EndocingExited,
         WritingOutput,
-        Done
+        Done,
+        Closing
     };
 
     private bool success;
@@ -535,6 +547,11 @@ class DownloadContainer : Panel
 
     private void SingleDownload_OutputDataReceived(object sender, DataReceivedEventArgs e)
     {
+        if (status == Status.Closing)
+        {
+            return;
+        }
+
         if (e.Data == null)
         {
             return;
@@ -624,7 +641,10 @@ class DownloadContainer : Panel
 
         // Construct the start of mainJSON
         constructMainJSON(0);
-
+        if(dlOutputPath == null) // how to catch output path in any given situation ?
+        {
+            reportDownloadError();
+        }
         if(progress == 1)
         {
             encodeOutput();
@@ -770,7 +790,12 @@ class DownloadContainer : Panel
     private string duration;
     private void SingleEncoder_ErrorDataReceived(object sender, DataReceivedEventArgs e)
     {
-        if(e.Data != null)
+        if (status == Status.Closing)
+        {
+            return;
+        }
+
+        if (e.Data != null)
         {
             processOutput.Append("STD_ERR: " + e.Data + Environment.NewLine);
             if(e.Data.Contains("Duration: "))
@@ -804,6 +829,11 @@ class DownloadContainer : Panel
 
     private void SingleEncoder_OutputDataReceived(object sender, DataReceivedEventArgs e)
     {
+        if(status == Status.Closing)
+        {
+            return;
+        }
+
         if (Shared.debugMode)
         {
             System.IO.File.WriteAllText("crashlogEncOUT.txt", processOutput.ToString());
@@ -928,6 +958,10 @@ class DownloadContainer : Panel
 
     private void removeThis()
     {
+        status = Status.Closing;
+        animateProgress.Stop();
+        animateGeneral.Stop();
+
         if (instanceRemoved == false)
         {
             if (downloadStarted)
@@ -944,12 +978,27 @@ class DownloadContainer : Panel
         {
             if (singleDownload != null && singleDownload.HasExited == false)
             {
+                singleDownload.OutputDataReceived -= SingleDownload_OutputDataReceived;
                 singleDownload.Exited -= SingleDownload_Exited;
                 singleDownload.Kill();
             }
         }
         catch (Exception ex)
         {
+        }
+
+        try
+        {
+            if(singleEncoder != null && singleEncoder.HasExited == false)
+            {
+                singleEncoder.OutputDataReceived -= SingleEncoder_OutputDataReceived;
+                singleEncoder.ErrorDataReceived -= SingleEncoder_ErrorDataReceived;
+                singleEncoder.Exited -= SingleEncoder_Exited;
+            }
+        }
+        catch(Exception ex)
+        {
+
         }
 
         LinkedListNode<DownloadContainer> nextNode = downloadNode.Next;

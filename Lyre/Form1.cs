@@ -51,6 +51,8 @@ namespace Lyre
         private Label ccDownloadsValue;
         private Label ccActiveDownloadsText;
         private Label ccActiveDownloadsValue;
+        private Label ccCanConvertText;
+        private CcToggle ccCanConvert;
 
 
         private object resourcesMissingCountLock = new object();
@@ -432,6 +434,26 @@ namespace Lyre
             ccActiveDownloadsValue.TextAlign = ContentAlignment.MiddleLeft;
             ccActiveDownloadsValue.AutoSize = true;
 
+            ccCanConvertText = new Label();
+            ccCanConvertText.Parent = ccStatusBar;
+            ccStatusBar.Controls.Add(ccCanConvertText);
+            ccCanConvertText.BackColor = ccStatusBar.BackColor;
+            ccCanConvertText.ForeColor = Color.White;
+            ccCanConvertText.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
+            ccCanConvertText.Text = "Convert to .mp3";
+            ccCanConvertText.TextAlign = ContentAlignment.MiddleLeft;
+            ccCanConvertText.AutoSize = true;
+
+            ccCanConvert = new CcToggle();
+            ccCanConvert.Parent = ccStatusBar;
+            ccStatusBar.Controls.Add(ccCanConvert);
+            ccCanConvert.isON = true;
+            ccCanConvert.BackColor = Shared.preferences.colorBackground;
+            ccCanConvert.ForeColor = Shared.preferences.colorFontDefault;
+            ccCanConvert.colorON = Shared.preferences.colorAccent2;
+            ccCanConvert.colorOFF = Shared.preferences.colorAccent3;
+            ccCanConvert.Click += CcCanConvert_Click;
+
             // Resource Downloader (debug oriented)
             ccResourceDownloaderLog = new RichTextBox();
             ccResourceDownloaderLog.Parent = ccDownloadsContainer;
@@ -448,6 +470,11 @@ namespace Lyre
             {
                 ccResourceDownloaderLog.Visible = false;
             }
+        }
+
+        private void CcCanConvert_Click(object sender, EventArgs e)
+        {
+            ccCanConvert.isON = !ccCanConvert.isON;
         }
 
         // https://stackoverflow.com/a/1592899
@@ -586,6 +613,13 @@ namespace Lyre
             ccActiveDownloadsText.Height = ccDownloadsText.Height;
             ccActiveDownloadsValue.Height = ccDownloadsText.Height;
 
+            ccCanConvert.Top = ccDownloadsText.Top;
+            ccCanConvert.Width = 70;
+            ccCanConvert.Left = ccStatusBar.Width - ccCanConvert.Width - 30;
+            ccCanConvert.Height = ccStatusBar.Height - (2 * ccCanConvert.Top);
+
+            ccCanConvertText.Top = ccDownloadsText.Top;
+            ccCanConvertText.Left = ccCanConvert.Left - 180;
 
             // download containers
             if (DownloadContainer.getDownloadsAccess().Count > 0)
@@ -669,6 +703,8 @@ namespace Lyre
             {
                 saveSources();
             }
+            // this kills all DownloadContainer processes as well
+            DownloadContainer.removeAllControls();
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
