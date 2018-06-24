@@ -77,7 +77,7 @@ class CcToggle : Control
 
         // Circle ON/OFF
         b1 = new SolidBrush(ForeColor);
-        e.Graphics.FillEllipse(b1, isON ? Width - Height : 0, 0, Height, Height - 1);
+        e.Graphics.FillEllipse(b1, isON ? Width - Height : 0, 0, Height - 1, Height - 1);
 
         b1.Dispose();
     }

@@ -309,6 +309,7 @@ namespace Lyre
             this.MouseMove += Form1_MouseMove;
             this.MouseDown += Form1_MouseDown;
             //this.BackColor = Color.Lime;
+            this.KeyPreview = true;
 
             ccContainer = new Panel();
             ccContainer.Parent = this;
@@ -447,7 +448,7 @@ namespace Lyre
             ccCanConvert = new CcToggle();
             ccCanConvert.Parent = ccStatusBar;
             ccStatusBar.Controls.Add(ccCanConvert);
-            ccCanConvert.isON = true;
+            ccCanConvert.isON = false;
             ccCanConvert.BackColor = Shared.preferences.colorBackground;
             ccCanConvert.ForeColor = Shared.preferences.colorFontDefault;
             ccCanConvert.colorON = Shared.preferences.colorAccent2;
@@ -825,7 +826,7 @@ namespace Lyre
                 dcMain.Parent = ccDownloadsContainer;
                 resizeDcMain();
             }
-            newDc.download(url, Shared.preferences.downloadsDirectory, true);
+            newDc.download(url, Shared.preferences.downloadsDirectory, ccCanConvert.isON);
         }
 
         private void Paste_KeyUp(object sender, KeyEventArgs e)

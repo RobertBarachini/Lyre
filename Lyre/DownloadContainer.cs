@@ -47,10 +47,18 @@ class DownloadContainer : Panel
     {
         lock (downloadsLock)
         {
-            foreach (DownloadContainer dlC in downloads)
+            try
             {
-                dlC.removeThis();
+                foreach (DownloadContainer dlC in downloads)
+                {
+                    try
+                    {
+                        dlC.removeThis();
+                    }
+                    catch (Exception ex) { }
+                }
             }
+            catch(Exception ex) { }
         }
     }
 
@@ -157,13 +165,13 @@ class DownloadContainer : Panel
         return singleDownload;
     }
 
-    private bool isUniqueDownloadsID(string videoID)
+    private bool isUniqueDownloadsID(string videoID, bool canConvertVal)
     {
         lock(downloadsLock)
         {
             foreach (DownloadContainer dc in downloads)
             {
-                if(dc != this && dc.videoID.Equals(videoID))
+                if(dc != this && dc.videoID.Equals(videoID) && dc.canConvert == canConvertVal)
                 {
                     return false;
                 }
@@ -442,9 +450,12 @@ class DownloadContainer : Panel
     {
         this.videoID = getVideoID(url);
         string path = Path.Combine(Shared.preferences.tempDirectoy, videoID + ".info.json");
+
+
         //check if the output file is already on disk
         bool outputFileExists = false;
-        if (System.IO.File.Exists(path))
+        
+        if (System.IO.File.Exists(path) && canConvert)
         {
             infoJSON = JObject.Parse(System.IO.File.ReadAllText(path));
             string outputFilename = "";
@@ -454,6 +465,7 @@ class DownloadContainer : Panel
                 outputFileExists = true;
             }
         }
+
         if (outputFileExists)
         {
             finished = true;
@@ -480,7 +492,7 @@ class DownloadContainer : Panel
         else
         {
             // only add to downloads if the videoID is unique = don't download twice
-            if (isUniqueDownloadsID(getVideoID(url)))
+            if (isUniqueDownloadsID(getVideoID(url), canConvert))
             {
                 try
                 {
@@ -529,7 +541,7 @@ class DownloadContainer : Panel
             }
             else
             {
-                arguments = "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s"/*, "%(title)s - %(id)s.%(ext)s"*/) + "\" " + url + " --write-thumbnail --write-info-json";
+                arguments =                      "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json -f bestvideo+bestaudio";
             }
             singleDownload.StartInfo.FileName = @"youtube-dl.exe";
             singleDownload.StartInfo.Arguments = arguments;
@@ -607,6 +619,12 @@ class DownloadContainer : Panel
             {
                 dlOutputPath = data.Substring("[download] Destination: ".Length);
             }
+            else if(data.Contains("[ffmpeg] Merging formats into"))
+            {
+                dlOutputPath = data.Substring("[ffmpeg] Merging formats into \"".Length);
+                dlOutputPath = dlOutputPath.Substring(0, dlOutputPath.Length - 1);
+                infoJSON["ext"] = dlOutputPath.Substring(dlOutputPath.LastIndexOf(".") + 1);
+            }
             else
             {
                 // TO BE IMPLEMENTED
@@ -645,13 +663,20 @@ class DownloadContainer : Panel
         {
             reportDownloadError();
         }
-        if(progress == 1)
+        if (canConvert)
         {
-            encodeOutput();
+            if (progress == 1)
+            {
+                encodeOutput();
+            }
+            else // something unexpected happened - report it
+            {
+                reportDownloadError();
+            }
         }
-        else // something unexpected happened - report it
+        else
         {
-            reportDownloadError();
+            finishProcess();
         }
     }
 
@@ -847,7 +872,19 @@ class DownloadContainer : Panel
 
     private void SingleEncoder_Exited(object sender, EventArgs e)
     {
-        status = Status.EndocingExited;
+        finishProcess();
+    }
+
+    private void finishProcess()
+    {
+        if (canConvert)
+        {
+            status = Status.EndocingExited;
+        }
+        else
+        {
+            status = Status.DownloadExited;
+        }
 
         if (Shared.debugMode)
         {
@@ -868,23 +905,30 @@ class DownloadContainer : Panel
             instanceRemoved = true;
         }
 
-        try
+        if (canConvert)
         {
-            TagLib.File soundFile = TagLib.File.Create(Path.Combine(Shared.preferences.tempDirectoy, videoID + ".mp3"));
-            IPicture albumArt = new Picture(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension));
-            soundFile.Tag.Pictures = new IPicture[1] { albumArt };
-            soundFile.Tag.Comment = videoID;
-            soundFile.Save();
+            try
+            {
+                TagLib.File soundFile = TagLib.File.Create(Path.Combine(Shared.preferences.tempDirectoy, videoID + ".mp3"));
+                IPicture albumArt = new Picture(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension));
+                soundFile.Tag.Pictures = new IPicture[1] { albumArt };
+                soundFile.Tag.Comment = videoID;
+                soundFile.Save();
+            }
+            catch (Exception ex) { }
         }
-        catch (Exception ex) { }
 
         string outputFileName = infoJSON.GetValue("fulltitle").ToString();
         outputFileName = getValidFileName(outputFileName);
+        status = Status.WritingOutput;
+
+        string extension = "";
+        extension = canConvert ? ".mp3" : "." + infoJSON.GetValue("ext").ToString(); // ext / _filename
+
         try
         {
-            outputPath = Path.Combine(destinationDirectory, outputFileName + ".mp3");
-            status = Status.WritingOutput;
-            System.IO.File.Move(Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".mp3", outputPath);
+            outputPath = Path.Combine(destinationDirectory, outputFileName + extension);
+            System.IO.File.Move(Path.Combine(Shared.preferences.tempDirectoy, videoID) + extension, outputPath);
             if (System.IO.File.Exists(outputPath))
             {
                 success = true;
@@ -895,20 +939,22 @@ class DownloadContainer : Panel
             }
         }
         catch (Exception ex) { }
+
         try
         {
-            System.IO.File.Delete(Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".mp3");
+            System.IO.File.Delete(Path.Combine(Shared.preferences.tempDirectoy, videoID) + extension);
         }
         catch (Exception ex) { }
+
         try
         {
             System.IO.File.Delete(dlOutputPath);
         }
-        catch(Exception ex) { }
+        catch (Exception ex) { }
 
         HistoryItem hi = new HistoryItem();
         //EXAMPLE : Path.GetFullPath((new Uri(absolute_path)).LocalPath);
-        hi.path_output = Path.GetFullPath(Path.Combine(destinationDirectory, outputFileName + ".mp3"));
+        hi.path_output = Path.GetFullPath(Path.Combine(destinationDirectory, outputFileName + extension));
         hi.path_thumbnail = Path.GetFullPath(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension));
         hi.title = infoJSON.GetValue("fulltitle").ToString();
         hi.url = infoJSON.GetValue("webpage_url").ToString();
