@@ -8,6 +8,10 @@ using System.Windows.Forms;
 
 class CcToggle : Control
 {
+    private Timer tAnimate;
+    private double tLocation;
+    private double tVelocity;
+
     private bool _isON;
     public bool isON
     {
@@ -18,6 +22,14 @@ class CcToggle : Control
         set
         {
             _isON = value;
+            tAnimate.Stop();
+            tVelocity = 15;
+            if (_isON == false)
+            {
+                tVelocity *= -1;
+            }
+            tAnimate.Start();
+
             Invalidate();
         }
     }
@@ -52,8 +64,40 @@ class CcToggle : Control
 
     public CcToggle()
     {
+        DoubleBuffered = true;
         Cursor = Cursors.Hand;
+        tLocation = 0;
+        tAnimate = new Timer();
+        tAnimate.Interval = 20;
+        tAnimate.Tick += TAnimate_Tick;
         isON = false;
+    }
+
+    private void TAnimate_Tick(object sender, EventArgs e)
+    {
+        double cPos = tLocation;
+        cPos += tVelocity;
+        tVelocity = tVelocity * 0.6;
+        double breakVal = 1.8;
+        if(Math.Abs(tVelocity) < breakVal)
+        {
+            tVelocity = tVelocity < 0 ? - breakVal : breakVal;
+        }
+        if((cPos <= 0 /*&& _isON == false*/) || (cPos >= Width - Height/* && isON == true*/))
+        {
+            if(cPos < 0)
+            {
+                cPos = 0;
+            }
+            if(cPos > Width - Height)
+            {
+                cPos = Width - Height;
+            }
+            tAnimate.Stop();
+        }
+        tLocation = cPos;
+
+        Invalidate();
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -77,7 +121,7 @@ class CcToggle : Control
 
         // Circle ON/OFF
         b1 = new SolidBrush(ForeColor);
-        e.Graphics.FillEllipse(b1, isON ? Width - Height : 0, 0, Height - 1, Height - 1);
+        e.Graphics.FillEllipse(b1, (int)tLocation, 0, Height - 1, Height - 1);
 
         b1.Dispose();
     }
