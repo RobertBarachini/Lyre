@@ -30,6 +30,8 @@ public class Preferences // Preferences / Settings / Defaults
     [JsonProperty]
     public Color colorAccent6 = Color.FromArgb(78, 0, 255); // Berry purple // Gradient1_2
     [JsonProperty]
+    public Color colorAccent7 = Color.FromArgb(255, 199, 0); // Golden-ish
+    [JsonProperty]
     public Font fontDefault = new Font(new FontFamily("Segoe UI"), 14, GraphicsUnit.Pixel); // Default font
     [JsonProperty]
     public int formWidth = 1100;
@@ -47,4 +49,8 @@ public class Preferences // Preferences / Settings / Defaults
     public int maxActiveProcesses = 2; // 3
     [JsonProperty]
     public int maxDownloadContainerControls = 5; // 10
+    [JsonProperty]
+    public int maxVideoQualitySelector = 5; // 0 = 144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 2160p, 4320p
+    [JsonProperty]
+    public int maxVideoFrameRateSelector = 2; // 24, 25, 30, 48, 50, 60
 }

@@ -42,7 +42,9 @@ namespace Lyre
         private Panel ccFormClose;
         private Panel ccDownloadsDirectory;
         private Label ccHint;
-        private Panel ccSettings;
+        private Label ccVideoQuality;
+        private Panel ccSettingsButton;
+        private Panel ccSettingsContainer;
         private RichTextBox ccResourceDownloaderLog;
 
         // Status Bar
@@ -237,10 +239,8 @@ namespace Lyre
 
         private void loadSources()
         {
-            //preferences = new Preferences();
             loadJSON(Shared.filePreferences, ref Shared.preferences);
             loadJSON(Shared.filenameHistory, ref Shared.history);
-            
         }
 
         private void loadDlQueue()
@@ -251,7 +251,6 @@ namespace Lyre
             {
                 foreach (string s in urls)
                 {
-                    //newDownload(s);
                     downloadsPreQueue.Enqueue(s);
                 }
             }
@@ -304,11 +303,10 @@ namespace Lyre
             this.SizeChanged += Form1_SizeChanged;
             this.KeyDown += Paste_KeyDown;
             this.KeyUp += Paste_KeyUp;
-            this.BackColor = Shared.preferences.colorForeground;
+            this.BackColor = Color.Lime;//Shared.preferences.colorForeground;
             //this.FormBorderStyle = FormBorderStyle.None;
             this.MouseMove += Form1_MouseMove;
             this.MouseDown += Form1_MouseDown;
-            //this.BackColor = Color.Lime;
             this.KeyPreview = true;
 
             ccContainer = new Panel();
@@ -330,6 +328,12 @@ namespace Lyre
             ccDownloadsContainer.AutoScroll = true;
             ccDownloadsContainer.KeyDown += Paste_KeyDown;
             ccDownloadsContainer.KeyUp += Paste_KeyUp;
+
+            ccSettingsContainer = new Panel();
+            ccSettingsContainer.Parent = ccContainer;
+            ccContainer.Controls.Add(ccSettingsContainer);
+            ccSettingsContainer.BackColor = Shared.preferences.colorForeground;
+            ccSettingsContainer.AutoScroll = true;
 
             ccFormMinimize = new Panel();
             ccFormMinimize.Parent = ccTopBar;
@@ -377,21 +381,22 @@ namespace Lyre
             ccHint.Text = "ALPHA preview : Paste Youtube links anywhere, really ...";
             ccHint.ForeColor = Shared.preferences.colorFontDefault;
             ccHint.BackColor = Shared.preferences.colorBackground;
+            ccHint.Visible = false;
 
-            ccSettings = new Panel();
-            ccSettings.Parent = ccTopBar;
-            ccTopBar.Controls.Add(ccSettings);
-            ccSettings.Cursor = Cursors.Hand;
-            ccSettings.BackgroundImageLayout = ImageLayout.Zoom;
-            ccSettings.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Settings));
-            ccSettings.BackColor = ccTopBar.BackColor;
-            ccSettings.Click += CcSettings_Click;
-            ccSettings.Visible = false;
+            ccSettingsButton = new Panel();
+            ccSettingsButton.Parent = ccTopBar;
+            ccTopBar.Controls.Add(ccSettingsButton);
+            ccSettingsButton.Cursor = Cursors.Hand;
+            ccSettingsButton.BackgroundImageLayout = ImageLayout.Zoom;
+            ccSettingsButton.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Settings));
+            ccSettingsButton.BackColor = ccTopBar.BackColor;
+            ccSettingsButton.Click += CcSettings_Click;
+            ccSettingsButton.Visible = true;
 
             // Status Bar
             ccStatusBar = new Panel();
-            ccStatusBar.Parent = ccContainer;
-            ccContainer.Controls.Add(ccStatusBar);
+            ccStatusBar.Parent = ccDownloadsContainer;
+            ccDownloadsContainer.Controls.Add(ccStatusBar);
             ccStatusBar.BackColor = Shared.preferences.colorBackground;
             ccStatusBar.BringToFront();
 
@@ -453,7 +458,17 @@ namespace Lyre
             ccCanConvert.ForeColor = Shared.preferences.colorFontDefault;
             ccCanConvert.colorON = Shared.preferences.colorAccent2;
             ccCanConvert.colorOFF = Shared.preferences.colorAccent3;
-            ccCanConvert.Click += CcCanConvert_Click;
+
+            ccVideoQuality = new Label();
+            ccVideoQuality.Parent = ccTopBar;
+            ccTopBar.Controls.Add(ccVideoQuality);
+            ccVideoQuality.BackColor = ccTopBar.BackColor;
+            ccVideoQuality.ForeColor = Shared.preferences.colorAccent2; // colorAccent4/7
+            ccVideoQuality.Cursor = Cursors.Hand;
+            ccVideoQuality.Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
+            ccVideoQuality.MouseClick += CcVideoQuality_MouseClick;
+            ccVideoQuality.AutoSize = true;
+            updateCcVideoQualityText();
 
             // Resource Downloader (debug oriented)
             ccResourceDownloaderLog = new RichTextBox();
@@ -471,11 +486,24 @@ namespace Lyre
             {
                 ccResourceDownloaderLog.Visible = false;
             }
+
+            // Show the desired container - downloadsContainer is default
+            turnOnContainerInvisibility();
+            ccDownloadsContainer.Visible = true;
         }
 
-        private void CcCanConvert_Click(object sender, EventArgs e)
+        private void CcVideoQuality_MouseClick(object sender, MouseEventArgs e)
         {
-            ccCanConvert.isON = !ccCanConvert.isON;
+            if(e.Button == MouseButtons.Left)
+            {
+                Shared.increaseVideoQuality();
+            }
+            else if(e.Button == MouseButtons.Right)
+            {
+                Shared.decreaseVideoQuality();
+            }
+
+            updateCcVideoQualityText();
         }
 
         // https://stackoverflow.com/a/1592899
@@ -492,6 +520,11 @@ namespace Lyre
                 ReleaseCapture();
                 SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
             }
+        }
+
+        private void updateCcVideoQualityText()
+        {
+            ccVideoQuality.Text = Shared.getVideoQualityString(Shared.preferences.maxVideoQualitySelector) + " " + Shared.getVideoFrameRatePure(Shared.preferences.maxVideoFrameRateSelector);
         }
 
         private void CcResourceDownloaderLog_LinkClicked(object sender, LinkClickedEventArgs e)
@@ -519,7 +552,22 @@ namespace Lyre
 
         private void CcSettings_Click(object sender, EventArgs e)
         {
-            // Implement settings
+            if(ccSettingsContainer.Visible)
+            {
+                turnOnContainerInvisibility();
+                ccDownloadsContainer.Visible = true;
+            }
+            else
+            {
+                turnOnContainerInvisibility();
+                ccSettingsContainer.Visible = true;
+            }
+        }
+
+        private void turnOnContainerInvisibility()
+        {
+            ccDownloadsContainer.Visible = false;
+            ccSettingsContainer.Visible = false;
         }
 
         private void CcDownloadsDirectory_Click(object sender, EventArgs e)
@@ -564,6 +612,11 @@ namespace Lyre
             ccDownloadsContainer.Width = ccContainer.Width;
             ccDownloadsContainer.Height = ccContainer.Height - ccTopBar.Height;
 
+            ccSettingsContainer.Top = ccTopBar.Top + ccTopBar.Height;
+            ccSettingsContainer.Left = 0;
+            ccSettingsContainer.Width = ccContainer.Width;
+            ccSettingsContainer.Height = ccContainer.Height;
+
             int barMargin = 10;
             ccFormClose.Top = barMargin;
             ccFormClose.Height = ccTopBar.Height - (ccFormClose.Top * 2);
@@ -580,23 +633,27 @@ namespace Lyre
             ccFormMinimize.Width = ccFormClose.Width;
             ccFormMinimize.Left = ccFormMaximize.Left - ccFormMinimize.Width - barMargin;
 
+            //ccHint.Top = barMargin;
+            //ccHint.Left = ccDownloadsDirectory.Left + ccDownloadsDirectory.Width + barMargin;
+            //ccHint.Width = 500;
+            //ccHint.Height = ccFormClose.Height;
+
+            ccSettingsButton.Top = barMargin;
+            ccSettingsButton.Left = barMargin;
+            ccSettingsButton.Width = ccFormClose.Width;
+            ccSettingsButton.Height = ccFormClose.Height;
+
             ccDownloadsDirectory.Top = barMargin;
-            ccDownloadsDirectory.Left = barMargin;
+            ccDownloadsDirectory.Left = ccSettingsButton.Left + ccSettingsButton.Width + barMargin;
             ccDownloadsDirectory.Height = ccFormClose.Height;
             ccDownloadsDirectory.Width = ccFormClose.Width;
 
-            ccHint.Top = barMargin;
-            ccHint.Left = ccDownloadsDirectory.Left + ccDownloadsDirectory.Width + barMargin;
-            ccHint.Width = 500;
-            ccHint.Height = ccFormClose.Height;
-
-            ccSettings.Top = barMargin;
-            ccSettings.Left = ccHint.Left + ccHint.Width + barMargin;
-            ccSettings.Width = ccDownloadsDirectory.Width;
-            ccSettings.Height = ccDownloadsDirectory.Height;
+            ccVideoQuality.Top = barMargin;
+            ccVideoQuality.Left = ccDownloadsDirectory.Left + ccDownloadsDirectory.Width + barMargin;
+            ccVideoQuality.Height = ccFormClose.Height;
 
             // status bar
-            ccStatusBar.Top = ccSettings.Top + ccSettings.Height + 50;
+            ccStatusBar.Top = ccSettingsButton.Top + ccSettingsButton.Height + barMargin;
             ccStatusBar.Height = 70;
             ccStatusBar.Left = 50;
             ccStatusBar.Width = ccContainer.Width - (2 * ccStatusBar.Left);
@@ -636,7 +693,7 @@ namespace Lyre
             try
             {
                 dcMain = DownloadContainer.getDownloadsAccess().First.Value;
-                dcMain.Top = ccStatusBar.Top + ccStatusBar.Height - ccDownloadsContainer.Top + 30; //30;
+                dcMain.Top = ccStatusBar.Top + ccStatusBar.Height + 30;
                 dcMain.Left = 50;
                 dcMain.Width = ccDownloadsContainer.Width - (dcMain.Left * 2);
                 dcMain.Height = 100;
@@ -806,11 +863,8 @@ namespace Lyre
                     JObject jsonO = JObject.Parse(dataString);
                     string url = "https://www.youtube.com/watch?v=";
                     url += jsonO.GetValue("id");
-                    int stop = 0;
-                    //newDownload(url);
                     this.Invoke((MethodInvoker)delegate
                     {
-                        //newDownload(url);
                         downloadsPreQueue.Enqueue(url);
                     });
                 }

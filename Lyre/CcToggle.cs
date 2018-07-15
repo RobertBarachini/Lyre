@@ -71,6 +71,12 @@ class CcToggle : Control
         tAnimate.Interval = 20;
         tAnimate.Tick += TAnimate_Tick;
         isON = false;
+        this.Click += CcToggle_Click;
+    }
+
+    private void CcToggle_Click(object sender, EventArgs e)
+    {
+        isON = !isON;
     }
 
     private void TAnimate_Tick(object sender, EventArgs e)

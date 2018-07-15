@@ -20,11 +20,6 @@ using TagLib;
 //// TODO
 //
 // - check if the download and encoding has been a success - check at event "Process.Exit" = mp3/video exists
-// - add Status enum (Downloading | DownloadExited | EncodingExited| Success | Fail)
-// - check for no connection to the server (currently acts as "success" -> change to "Waiting for connection")
-
-// kako bi naredil da ko se klice download ne caka na svoj vrstni red s queue..
-// static timer ki gleda kateri je prvi DownloadContainer v downloadsQueue in šele nato pokliče download()
 
 class DownloadContainer : Panel
 {
@@ -34,7 +29,6 @@ class DownloadContainer : Panel
     private static LinkedList<DownloadContainer> downloadsQueue = new LinkedList<DownloadContainer>();
     private static object activeProcessesLock = new object();
     private static int activeProcesses = 0;
-    //private static int maxActiveProcesses = 3; - moved to Preferences.cs
     private LinkedListNode<DownloadContainer> downloadNode;
     private static System.Windows.Forms.Timer downloadsHandler = new System.Windows.Forms.Timer();
 
@@ -541,7 +535,7 @@ class DownloadContainer : Panel
             }
             else
             {
-                arguments =                      "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json -f bestvideo+bestaudio";
+                arguments = "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json -f bestvideo[height<=?" + Shared.getVideoQualityStringPure(Shared.preferences.maxVideoQualitySelector) + "][fps<=?" + Shared.getVideoFrameRatePure(Shared.preferences.maxVideoFrameRateSelector) + "]+bestaudio";
             }
             singleDownload.StartInfo.FileName = @"youtube-dl.exe";
             singleDownload.StartInfo.Arguments = arguments;
@@ -838,7 +832,6 @@ class DownloadContainer : Panel
                 //updateProgress(somePregress);
                 progress = somePregress;
             }
-            int aaaaaaaa = 0;
         }
     }
 
