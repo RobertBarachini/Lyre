@@ -53,4 +53,6 @@ public class Preferences // Preferences / Settings / Defaults
     public int maxVideoQualitySelector = 5; // 0 = 144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 2160p, 4320p
     [JsonProperty]
     public int maxVideoFrameRateSelector = 2; // 24, 25, 30, 48, 50, 60
+    [JsonProperty]
+    public bool enableThumbnailAnimations = false;
 }

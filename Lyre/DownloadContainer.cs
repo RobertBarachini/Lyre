@@ -336,7 +336,10 @@ class DownloadContainer : Panel
         animateGeneral = new System.Windows.Forms.Timer();
         animateGeneral.Interval = 50;
         animateGeneral.Tick += AnimateGeneral_Tick;
-        animateGeneral.Start();
+        if (Shared.preferences.enableThumbnailAnimations)
+        {
+            animateGeneral.Start();
+        }
     }
 
     private void ProgressLabel_Click(object sender, EventArgs e)
@@ -401,7 +404,10 @@ class DownloadContainer : Panel
             }
         }
 
-        animateGeneral.Start();
+        if (Shared.preferences.enableThumbnailAnimations)
+        {
+            animateGeneral.Start();
+        }
     }
 
     private void AnimateProgress_Tick(object sender, EventArgs e)
@@ -424,7 +430,10 @@ class DownloadContainer : Panel
         success = false;
         status = Status.Idle;
         animateProgress.Start();
-        animateGeneral.Start();
+        if (Shared.preferences.enableThumbnailAnimations)
+        {
+            animateGeneral.Start();
+        }
         this.title.Invoke((MethodInvoker)delegate
         {
             this.title.Text = "Waiting for download";

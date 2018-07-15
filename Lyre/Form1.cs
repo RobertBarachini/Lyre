@@ -45,6 +45,7 @@ namespace Lyre
         private Label ccVideoQuality;
         private Panel ccSettingsButton;
         private Panel ccSettingsContainer;
+        private Panel ccSettingsPanel;
         private RichTextBox ccResourceDownloaderLog;
 
         // Status Bar
@@ -335,6 +336,11 @@ namespace Lyre
             ccSettingsContainer.BackColor = Shared.preferences.colorForeground;
             ccSettingsContainer.AutoScroll = true;
 
+            ccSettingsPanel = new CcSettings();
+            ccSettingsPanel.Parent = ccSettingsContainer;
+            ccSettingsContainer.Controls.Add(ccSettingsPanel);
+            ccSettingsPanel.AutoScroll = true;
+
             ccFormMinimize = new Panel();
             ccFormMinimize.Parent = ccTopBar;
             ccTopBar.Controls.Add(ccFormMinimize);
@@ -617,6 +623,11 @@ namespace Lyre
             ccSettingsContainer.Width = ccContainer.Width;
             ccSettingsContainer.Height = ccContainer.Height;
 
+            ccSettingsPanel.Top = 50;
+            ccSettingsPanel.Width = 800;
+            ccSettingsPanel.Height = ccSettingsContainer.Height - 150;
+            ccSettingsContainer.Left = Math.Max(0, (ccSettingsContainer.Width - ccSettingsPanel.Width) / 2);
+
             int barMargin = 10;
             ccFormClose.Top = barMargin;
             ccFormClose.Height = ccTopBar.Height - (ccFormClose.Top * 2);
@@ -653,7 +664,7 @@ namespace Lyre
             ccVideoQuality.Height = ccFormClose.Height;
 
             // status bar
-            ccStatusBar.Top = ccSettingsButton.Top + ccSettingsButton.Height + barMargin;
+            ccStatusBar.Top = 50; // ccSettingsButton.Top + ccSettingsButton.Height + barMargin;
             ccStatusBar.Height = 70;
             ccStatusBar.Left = 50;
             ccStatusBar.Width = ccContainer.Width - (2 * ccStatusBar.Left);

@@ -72,6 +72,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CcSettings.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="CcToggle.cs">
       <SubType>Component</SubType>
     </Compile>
