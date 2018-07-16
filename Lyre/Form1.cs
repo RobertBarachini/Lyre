@@ -45,7 +45,8 @@ namespace Lyre
         private Label ccVideoQuality;
         private Panel ccSettingsButton;
         private Panel ccSettingsContainer;
-        private Panel ccSettingsPanel;
+        private CcSettings ccSettingsPanel;
+        private Panel ccSettingsBottomMargin;
         private RichTextBox ccResourceDownloaderLog;
 
         // Status Bar
@@ -339,7 +340,12 @@ namespace Lyre
             ccSettingsPanel = new CcSettings();
             ccSettingsPanel.Parent = ccSettingsContainer;
             ccSettingsContainer.Controls.Add(ccSettingsPanel);
-            ccSettingsPanel.AutoScroll = true;
+            //ccSettingsPanel.AutoScroll = true;
+
+            ccSettingsBottomMargin = new Panel();
+            ccSettingsBottomMargin.Parent = ccSettingsContainer;
+            ccSettingsContainer.Controls.Add(ccSettingsBottomMargin);
+            ccSettingsBottomMargin.BackColor = ccSettingsContainer.BackColor;
 
             ccFormMinimize = new Panel();
             ccFormMinimize.Parent = ccTopBar;
@@ -410,7 +416,7 @@ namespace Lyre
             ccDownloadsText.Parent = ccStatusBar;
             ccStatusBar.Controls.Add(ccDownloadsText);
             ccDownloadsText.BackColor = ccStatusBar.BackColor;
-            ccDownloadsText.ForeColor = Color.White;
+            ccDownloadsText.ForeColor = Shared.preferences.colorFontDefault;
             ccDownloadsText.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
             ccDownloadsText.Text = "Downloads:";
             ccDownloadsText.TextAlign = ContentAlignment.MiddleLeft;
@@ -430,7 +436,7 @@ namespace Lyre
             ccActiveDownloadsText.Parent = ccStatusBar;
             ccStatusBar.Controls.Add(ccActiveDownloadsText);
             ccActiveDownloadsText.BackColor = ccStatusBar.BackColor;
-            ccActiveDownloadsText.ForeColor = Color.White;
+            ccActiveDownloadsText.ForeColor = Shared.preferences.colorFontDefault;
             ccActiveDownloadsText.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
             ccActiveDownloadsText.Text = "Active downloads:";
             ccActiveDownloadsText.TextAlign = ContentAlignment.MiddleLeft;
@@ -450,7 +456,7 @@ namespace Lyre
             ccCanConvertText.Parent = ccStatusBar;
             ccStatusBar.Controls.Add(ccCanConvertText);
             ccCanConvertText.BackColor = ccStatusBar.BackColor;
-            ccCanConvertText.ForeColor = Color.White;
+            ccCanConvertText.ForeColor = Shared.preferences.colorFontDefault;
             ccCanConvertText.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
             ccCanConvertText.Text = "Convert to .mp3";
             ccCanConvertText.TextAlign = ContentAlignment.MiddleLeft;
@@ -621,12 +627,16 @@ namespace Lyre
             ccSettingsContainer.Top = ccTopBar.Top + ccTopBar.Height;
             ccSettingsContainer.Left = 0;
             ccSettingsContainer.Width = ccContainer.Width;
-            ccSettingsContainer.Height = ccContainer.Height;
+            ccSettingsContainer.Height = ccContainer.Height - ccTopBar.Height;
 
             ccSettingsPanel.Top = 50;
-            ccSettingsPanel.Width = 800;
-            ccSettingsPanel.Height = ccSettingsContainer.Height - 150;
-            ccSettingsContainer.Left = Math.Max(0, (ccSettingsContainer.Width - ccSettingsPanel.Width) / 2);
+            //ccSettingsPanel.MaximumSize = new Size(800, ccSettingsPanel.Height); // resizing issues...
+            ccSettingsPanel.Width = 800; //Math.Min(800, ccSettingsContainer.Width - 30); //800;
+            ccSettingsPanel.Left = Math.Max(0, (ccSettingsContainer.Width - ccSettingsPanel.Width) / 2);
+            //this.Text = ccSettingsContainer.Width + "/" + ccSettingsPanel.Width;
+
+            ccSettingsBottomMargin.Top = ccSettingsPanel.Top + ccSettingsPanel.Height + 50;
+            ccSettingsBottomMargin.Height = 1;
 
             int barMargin = 10;
             ccFormClose.Top = barMargin;
