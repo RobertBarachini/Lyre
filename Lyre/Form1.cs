@@ -85,6 +85,18 @@ namespace Lyre
                 //preferences = new Preferences();
             }
             InitComponents();
+            //try
+            //{
+            //    InitComponents();
+            //}
+            //catch(Exception ex)
+            //{
+            //    File.Delete(Shared.filePreferences);
+            //    //saveJSON(Shared.filePreferences, Shared.preferences);
+            //    //loadJSON(Shared.filePreferences, ref Shared.preferences);
+            //    loadSources();
+            //    InitComponents();
+            //}
             if (resourcesMissingCount == 0)
             {
                 loadDlQueue();

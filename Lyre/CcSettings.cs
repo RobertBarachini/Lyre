@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using System.Windows.Forms;
 using System.Drawing;
+using System.IO;
+using System.Threading;
 
 namespace Lyre
 {
@@ -49,6 +51,18 @@ namespace Lyre
 
         private Label ccLabelColorAccent7;
         private Panel ccPanelColorAccent7;
+
+        // File folder
+        private Panel ccContainerFiles;
+        private Label ccTitleFiles;
+
+        private Label ccLabelFolderDownloads;
+        private RichTextBox ccTextFolderDownloads;
+        private Panel ccButtonFolderDownloads;
+
+        private Label ccLabelFolderTemp;
+        private RichTextBox ccTextFolderTemp;
+        private Panel ccButtonFolderTemp;
 
         public CcSettings()
         {
@@ -255,11 +269,148 @@ namespace Lyre
             ccPanelColorAccent7.Cursor = Cursors.Hand;
             ccPanelColorAccent7.Click += CcPanelColorAccent7_Click;
 
+            // File folder
+            ccContainerFiles = new Panel();
+            ccContainerFiles.Parent = this;
+            this.Controls.Add(ccContainerFiles);
+            ccContainerFiles.BackColor = Shared.preferences.colorBackground;
+            ccContainerFiles.AutoSize = true;
+
+            ccTitleFiles = new Label();
+            ccTitleFiles.Parent = ccContainerFiles;
+            ccContainerFiles.Controls.Add(ccTitleFiles);
+            ccTitleFiles.ForeColor = Shared.preferences.colorFontDefault;
+            ccTitleFiles.Font = new Font(Shared.preferences.fontDefault.FontFamily, 28, GraphicsUnit.Pixel);
+            ccTitleFiles.Text = "File folders";
+            ccTitleFiles.AutoSize = true;
+
+
+            ccLabelFolderDownloads = new Label();
+            ccLabelFolderDownloads.Parent = ccContainerFiles;
+            ccContainerFiles.Controls.Add(ccLabelFolderDownloads);
+            ccLabelFolderDownloads.ForeColor = Shared.preferences.colorFontDefault;
+            ccLabelFolderDownloads.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
+            ccLabelFolderDownloads.Text = "Downloads folder: ";
+            ccLabelFolderDownloads.AutoSize = true;
+
+            ccTextFolderDownloads = new RichTextBox();
+            ccTextFolderDownloads.Parent = ccContainerFiles;
+            ccContainerFiles.Controls.Add(ccTextFolderDownloads);
+            ccTextFolderDownloads.ForeColor = Shared.preferences.colorFontDefault;
+            ccTextFolderDownloads.BackColor = ccContainerFiles.BackColor;
+            ccTextFolderDownloads.BorderStyle = BorderStyle.None;
+            ccTextFolderDownloads.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
+            ccTextFolderDownloads.ReadOnly = true;
+            ccTextFolderDownloads.WordWrap = true;
+            ccTextFolderDownloads.Text = Path.GetFullPath(Shared.preferences.downloadsDirectory);
+
+            ccButtonFolderDownloads = new Panel();
+            ccButtonFolderDownloads.Parent = ccContainerFiles;
+            ccContainerFiles.Controls.Add(ccButtonFolderDownloads);
+            ccButtonFolderDownloads.Cursor = Cursors.Hand;
+            ccButtonFolderDownloads.BackgroundImageLayout = ImageLayout.Zoom;
+            ccButtonFolderDownloads.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Directory));
+            ccButtonFolderDownloads.BackColor = ccContainerFiles.BackColor;
+            ccButtonFolderDownloads.Click += ccButtonFolderDownloads_Click;
+
+
+            ccLabelFolderTemp = new Label();
+            ccLabelFolderTemp.Parent = ccContainerFiles;
+            ccContainerFiles.Controls.Add(ccLabelFolderTemp);
+            ccLabelFolderTemp.ForeColor = Shared.preferences.colorFontDefault;
+            ccLabelFolderTemp.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
+            ccLabelFolderTemp.Text = "Temporary files: ";
+            ccLabelFolderTemp.AutoSize = true;
+
+            ccTextFolderTemp = new RichTextBox();
+            ccTextFolderTemp.Parent = ccContainerFiles;
+            ccContainerFiles.Controls.Add(ccTextFolderTemp);
+            ccTextFolderTemp.ForeColor = Shared.preferences.colorFontDefault;
+            ccTextFolderTemp.BackColor = ccContainerFiles.BackColor;
+            ccTextFolderTemp.BorderStyle = BorderStyle.None;
+            ccTextFolderTemp.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
+            ccTextFolderTemp.ReadOnly = true;
+            ccTextFolderTemp.WordWrap = true;
+            ccTextFolderTemp.Text = Path.GetFullPath(Shared.preferences.tempDirectoy);
+
+            ccButtonFolderTemp = new Panel();
+            ccButtonFolderTemp.Parent = ccContainerFiles;
+            ccContainerFiles.Controls.Add(ccButtonFolderTemp);
+            ccButtonFolderTemp.Cursor = Cursors.Hand;
+            ccButtonFolderTemp.BackgroundImageLayout = ImageLayout.Zoom;
+            ccButtonFolderTemp.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Directory));
+            ccButtonFolderTemp.BackColor = ccContainerFiles.BackColor;
+            ccButtonFolderTemp.Click += CcButtonFolderTemp_Click;
+
             // Bottom margin
             ccBottomMargin = new Panel();
             ccBottomMargin.Parent = this;
             this.Controls.Add(ccBottomMargin);
             ccBottomMargin.BackColor = this.BackColor;
+        }
+
+        private void CcButtonFolderTemp_Click(object sender, EventArgs e)
+        {
+            using (var folderDialog = new FolderBrowserDialog())
+            {
+                folderDialog.Description = "Choose future temporary files destination directory.";
+                if (Shared.preferences.tempDirectoy.Equals("temp"))
+                {
+                    folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Shared.preferences.tempDirectoy);
+                }
+                else
+                {
+                    folderDialog.SelectedPath = Shared.preferences.tempDirectoy;
+                }
+                if (folderDialog.ShowDialog() == DialogResult.OK)
+                {
+                    Shared.preferences.tempDirectoy = folderDialog.SelectedPath;
+                }
+            }
+        }
+
+        private void ccButtonFolderDownloads_Click(object sender, EventArgs e)
+        {
+            using (var folderDialog = new FolderBrowserDialog())
+            {
+                folderDialog.Description = "Choose future downloads destination directory.";
+                if (Shared.preferences.downloadsDirectory.Equals("downloads"))
+                {
+                    folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Shared.preferences.downloadsDirectory);
+                }
+                else
+                {
+                    folderDialog.SelectedPath = Shared.preferences.downloadsDirectory;
+                }
+                if (folderDialog.ShowDialog() == DialogResult.OK)
+                {
+                    Shared.preferences.downloadsDirectory = folderDialog.SelectedPath;
+                }
+            }
+        }
+
+        public static Image getImage(string path)
+        {
+            int counter = 0;
+            while (System.IO.File.Exists(path) == false)
+            {
+                Application.DoEvents();
+                Thread.Sleep(50);
+                counter += 50;
+                if (counter > 1000)
+                {
+                    break;
+                }
+            }
+            try
+            {
+                Image img = Image.FromStream(new MemoryStream(System.IO.File.ReadAllBytes(path)));
+                return img;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         private void CcPanelColorAccent7_Click(object sender, EventArgs e)
@@ -498,11 +649,48 @@ namespace Lyre
             ccPanelColorAccent7.Height = ccPanelColorFont.Width;
             ccPanelColorAccent7.Left = ccPanelColorFont.Left;
 
+            // File folder
+            ccContainerFiles.Top = ccContainerColors.Top + ccContainerColors.Height + bottomMargin + 20;
+            ccContainerFiles.Left = ccLabelSettins.Left + bottomMarginM;
+            ccContainerFiles.Width = this.Width - (ccContainerFiles.Left * 2);
+
+            ccTitleFiles.Top = 0;
+            ccTitleFiles.Left = 0; //bottomMarginS;
+
+
+            ccLabelFolderDownloads.Top = ccTitleFiles.Top + ccTitleFiles.Height + bottomMargin;
+            ccLabelFolderDownloads.Left = 0;
+
+            ccButtonFolderDownloads.Top = ccLabelFolderDownloads.Top;
+            ccButtonFolderDownloads.Width = 50;
+            ccButtonFolderDownloads.Height = ccButtonFolderDownloads.Width;
+            ccButtonFolderDownloads.Left = ccContainerFiles.Width - ccButtonFolderDownloads.Width;
+
+            ccTextFolderDownloads.Top = ccLabelFolderDownloads.Top;
+            ccTextFolderDownloads.Left = ccLabelFolderDownloads.Left + ccLabelFolderDownloads.Width + bottomMargin;
+            ccTextFolderDownloads.Width = ccButtonFolderDownloads.Left - (bottomMargin * 2) - ccLabelFolderDownloads.Width - ccLabelFolderDownloads.Left;
+            ccTextFolderDownloads.Height = (int)(ccTextFolderDownloads.Font.Size * 3 * 1.5);
+
+
+            ccLabelFolderTemp.Top = ccTextFolderDownloads.Top + ccTextFolderDownloads.Height + bottomMargin;
+            ccLabelFolderTemp.Left = 0;
+
+            ccButtonFolderTemp.Top = ccLabelFolderTemp.Top;
+            ccButtonFolderTemp.Width = 50;
+            ccButtonFolderTemp.Height = ccButtonFolderTemp.Width;
+            ccButtonFolderTemp.Left = ccButtonFolderDownloads.Left;
+
+            ccTextFolderTemp.Top = ccLabelFolderTemp.Top;
+            ccTextFolderTemp.Left = ccLabelFolderDownloads.Left + ccLabelFolderDownloads.Width + bottomMargin;
+            ccTextFolderTemp.Width = ccButtonFolderDownloads.Left - (bottomMargin * 2) - ccLabelFolderTemp.Width - ccLabelFolderTemp.Left;
+            ccTextFolderTemp.Height = (int)(ccTextFolderTemp.Font.Size * 3 * 1.5);
+
+
             // Bottom margin
             ccBottomMargin.Height = 1;
             ccBottomMargin.Width = 1;
-            ccBottomMargin.Left = ccContainerColors.Left;
-            ccBottomMargin.Top = ccContainerColors.Top + ccContainerColors.Height + 100;
+            ccBottomMargin.Left = ccContainerFiles.Left;
+            ccBottomMargin.Top = ccContainerFiles.Top + ccContainerFiles.Height + 100;
         }
     }
 }
