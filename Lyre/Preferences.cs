@@ -55,4 +55,6 @@ public class Preferences // Preferences / Settings / Defaults
     public int maxVideoFrameRateSelector = 2; // 24, 25, 30, 48, 50, 60
     [JsonProperty]
     public bool enableThumbnailAnimations = false;
+    [JsonProperty]
+    public bool canConvert = false;
 }

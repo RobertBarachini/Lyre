@@ -476,6 +476,9 @@ namespace Lyre
             ccDownloadsValue.Text = "0 / 0";
             ccDownloadsValue.TextAlign = ContentAlignment.MiddleLeft;
             ccDownloadsValue.AutoSize = true;
+            ccDownloadsValue.MouseClick += CcDownloadsValue_MouseClick;
+            ccDownloadsValue.MouseDoubleClick += CcDownloadsValue_MouseDoubleClick;
+            ccDownloadsValue.Cursor = Cursors.Hand;
 
             ccActiveDownloadsText = new Label();
             ccActiveDownloadsText.Parent = ccStatusBar;
@@ -496,6 +499,9 @@ namespace Lyre
             ccActiveDownloadsValue.Text = "0 / 0";
             ccActiveDownloadsValue.TextAlign = ContentAlignment.MiddleLeft;
             ccActiveDownloadsValue.AutoSize = true;
+            ccActiveDownloadsValue.MouseClick += ccActiveDownloadsValue_MouseClick;
+            ccActiveDownloadsValue.MouseDoubleClick += ccActiveDownloadsValue_MouseDoubleClick;
+            ccActiveDownloadsValue.Cursor = Cursors.Hand;
 
             ccCanConvertText = new Label();
             ccCanConvertText.Parent = ccStatusBar;
@@ -510,11 +516,12 @@ namespace Lyre
             ccCanConvert = new CcToggle();
             ccCanConvert.Parent = ccStatusBar;
             ccStatusBar.Controls.Add(ccCanConvert);
-            ccCanConvert.isON = false;
+            ccCanConvert.isON = Shared.preferences.canConvert;
             ccCanConvert.BackColor = Shared.preferences.colorBackground;
             ccCanConvert.ForeColor = Shared.preferences.colorFontDefault;
             ccCanConvert.colorON = Shared.preferences.colorAccent2;
             ccCanConvert.colorOFF = Shared.preferences.colorAccent3;
+            ccCanConvert.Click += CcCanConvert_Click;
 
             ccVideoQuality = new Label();
             ccVideoQuality.Parent = ccTopBar;
@@ -547,6 +554,69 @@ namespace Lyre
             // Show the desired container - downloadsContainer is default
             turnOnContainerInvisibility();
             ccDownloadsContainer.Visible = true;
+        }
+
+        private void ccActiveDownloadsValue_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                Shared.preferences.maxActiveProcesses = Math.Min(Math.Min(Shared.preferences.maxDownloadContainerControls, Shared.preferences.maxActiveProcesses + 5), int.MaxValue);
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                Shared.preferences.maxActiveProcesses = Math.Max(1, Shared.preferences.maxActiveProcesses - 5);
+            }
+
+            updateStatusBar();
+        }
+
+        private void ccActiveDownloadsValue_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                Shared.preferences.maxActiveProcesses = Math.Min(Math.Min(Shared.preferences.maxDownloadContainerControls, Shared.preferences.maxActiveProcesses + 1), int.MaxValue);
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                Shared.preferences.maxActiveProcesses = Math.Max(1, Shared.preferences.maxActiveProcesses - 1);
+            }
+
+            updateStatusBar();
+        }
+
+        private void CcDownloadsValue_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                Shared.preferences.maxDownloadContainerControls = Math.Min(Shared.preferences.maxDownloadContainerControls + 5, int.MaxValue);
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                Shared.preferences.maxDownloadContainerControls = Math.Max(1, Shared.preferences.maxDownloadContainerControls - 5);
+                Shared.preferences.maxActiveProcesses = Math.Min(Shared.preferences.maxDownloadContainerControls, Shared.preferences.maxActiveProcesses);
+            }
+
+            updateStatusBar();
+        }
+
+        private void CcDownloadsValue_MouseClick(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Left)
+            {
+                Shared.preferences.maxDownloadContainerControls = Math.Min(Shared.preferences.maxDownloadContainerControls + 1, int.MaxValue);
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                Shared.preferences.maxDownloadContainerControls = Math.Max(1, Shared.preferences.maxDownloadContainerControls - 1);
+                Shared.preferences.maxActiveProcesses = Math.Min(Shared.preferences.maxDownloadContainerControls, Shared.preferences.maxActiveProcesses);
+            }
+
+            updateStatusBar();
+        }
+
+        private void CcCanConvert_Click(object sender, EventArgs e)
+        {
+            Shared.preferences.canConvert = ccCanConvert.isON;
         }
 
         private void CcVideoQuality_MouseClick(object sender, MouseEventArgs e)
@@ -949,7 +1019,7 @@ namespace Lyre
                 dcMain.Parent = ccDownloadsContainer;
                 resizeDcMain();
             }
-            newDc.download(url, Shared.preferences.downloadsDirectory, ccCanConvert.isON);
+            newDc.download(url, Shared.preferences.downloadsDirectory, Shared.preferences.canConvert);
         }
 
         private void Paste_KeyUp(object sender, KeyEventArgs e)
