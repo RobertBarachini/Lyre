@@ -9,11 +9,14 @@ using System.Drawing;
 using System.IO;
 using System.Threading;
 
+// This bit of code looks like a complete overkill but the end result looks pretty.
+
 namespace Lyre
 {
     class CcSettings : Panel
     {
         private ColorDialog ccPicker;
+        private System.Windows.Forms.Timer timerStatusUpdater;
 
         private Label ccLabelSettins;
         private Panel ccBottomMargin;
@@ -78,6 +81,45 @@ namespace Lyre
 
             InitComponents();
             resizeComponents();
+
+            timerStatusUpdater = new System.Windows.Forms.Timer();
+            timerStatusUpdater.Interval = 1000;
+            timerStatusUpdater.Tick += TimerStatusUpdater_Tick;
+            timerStatusUpdater.Start();
+        }
+
+        private void TimerStatusUpdater_Tick(object sender, EventArgs e)
+        {
+            // Some settings should not be changed during the download process
+            // Bug - changing a cursor for a specific control changes it globally
+            if (getUnfinishedDownloadsCount() == 0)
+            {
+                //if (ccButtonFolderDownloads.Cursor != Cursors.Hand)
+                //{
+                //    ccButtonFolderDownloads.Cursor = Cursors.Hand;
+                //}
+                ccButtonFolderDownloads.BackColor = ccButtonFolderDownloads.Parent.BackColor;
+
+                //if (ccButtonFolderTemp.Cursor != Cursors.Hand)
+                //{
+                //    ccButtonFolderTemp.Cursor = Cursors.Hand;
+                //}
+                ccButtonFolderTemp.BackColor = ccButtonFolderTemp.Parent.BackColor;
+            }
+            else
+            {
+                //if (ccButtonFolderDownloads.Cursor != Cursors.No)
+                //{
+                //    ccButtonFolderDownloads.Cursor = Cursors.No;
+                //}
+                ccButtonFolderDownloads.BackColor = Shared.preferences.colorAccent3;
+
+                //if (ccButtonFolderTemp.Cursor != Cursors.No)
+                //{
+                //    ccButtonFolderTemp.Cursor = Cursors.No;
+                //}
+                ccButtonFolderTemp.BackColor = Shared.preferences.colorAccent3;
+            }
         }
 
         private void CcSettings_SizeChanged(object sender, EventArgs e)
@@ -349,42 +391,59 @@ namespace Lyre
             ccBottomMargin.BackColor = this.BackColor;
         }
 
+        private int getUnfinishedDownloadsCount()
+        {
+            int downloadsActive = DownloadContainer.getActiveProcessesCount();
+            int downloadsInQueue = DownloadContainer.getDownloadsQueueCount();
+            int downloadsInPreQueue = Shared.mainForm.getDownloadsPreQueueCount();
+
+            int downloadsUnfinished = downloadsActive + downloadsInQueue + downloadsInPreQueue;
+
+            return downloadsUnfinished;
+        }
+
         private void CcButtonFolderTemp_Click(object sender, EventArgs e)
         {
-            using (var folderDialog = new FolderBrowserDialog())
+            if (getUnfinishedDownloadsCount() == 0)
             {
-                folderDialog.Description = "Choose future temporary files destination directory.";
-                if (Shared.preferences.tempDirectoy.Equals("temp"))
+                using (var folderDialog = new FolderBrowserDialog())
                 {
-                    folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Shared.preferences.tempDirectoy);
-                }
-                else
-                {
-                    folderDialog.SelectedPath = Shared.preferences.tempDirectoy;
-                }
-                if (folderDialog.ShowDialog() == DialogResult.OK)
-                {
-                    Shared.preferences.tempDirectoy = folderDialog.SelectedPath;
+                    folderDialog.Description = "Choose future temporary files destination directory.";
+                    if (Shared.preferences.tempDirectoy.Equals("temp"))
+                    {
+                        folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Shared.preferences.tempDirectoy);
+                    }
+                    else
+                    {
+                        folderDialog.SelectedPath = Shared.preferences.tempDirectoy;
+                    }
+                    if (folderDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        Shared.preferences.tempDirectoy = folderDialog.SelectedPath;
+                    }
                 }
             }
         }
 
         private void ccButtonFolderDownloads_Click(object sender, EventArgs e)
         {
-            using (var folderDialog = new FolderBrowserDialog())
+            if (getUnfinishedDownloadsCount() == 0)
             {
-                folderDialog.Description = "Choose future downloads destination directory.";
-                if (Shared.preferences.downloadsDirectory.Equals("downloads"))
+                using (var folderDialog = new FolderBrowserDialog())
                 {
-                    folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Shared.preferences.downloadsDirectory);
-                }
-                else
-                {
-                    folderDialog.SelectedPath = Shared.preferences.downloadsDirectory;
-                }
-                if (folderDialog.ShowDialog() == DialogResult.OK)
-                {
-                    Shared.preferences.downloadsDirectory = folderDialog.SelectedPath;
+                    folderDialog.Description = "Choose future downloads destination directory.";
+                    if (Shared.preferences.downloadsDirectory.Equals("downloads"))
+                    {
+                        folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Shared.preferences.downloadsDirectory);
+                    }
+                    else
+                    {
+                        folderDialog.SelectedPath = Shared.preferences.downloadsDirectory;
+                    }
+                    if (folderDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        Shared.preferences.downloadsDirectory = folderDialog.SelectedPath;
+                    }
                 }
             }
         }

@@ -5,9 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
+using System.Windows.Forms;
 
 public class Shared
 {
+    // Main form
+    public static Lyre.Form1 mainForm;
+
     public static object lockHistory = new object();
     [JsonProperty]
     public static LinkedList<HistoryItem> history = new LinkedList<HistoryItem>();

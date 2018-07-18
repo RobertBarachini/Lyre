@@ -70,10 +70,17 @@ namespace Lyre
             Form1_Load_Call();
         }
 
+        public int getDownloadsPreQueueCount()
+        {
+            return downloadsPreQueue.Count;
+        }
+
         private void Form1_Load_Call()
         {
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+            Shared.mainForm = this;
 
             resourcesMissingCount = getResourcesMissingCount();
             try // if a dll is missing
@@ -155,15 +162,40 @@ namespace Lyre
         private void updateStatusBar()
         {
             int downloadsActive = DownloadContainer.getActiveProcessesCount();
-            int downloadsInQueue = DownloadContainer.getDownloadsQueueCount();
-            int downloadsInPreQueue = downloadsPreQueue.Count;
 
-            int downloadsUnfinished = downloadsActive + downloadsInQueue + downloadsInPreQueue;
+            int downloadsUnfinished = getUnfinishedDownloadsCount();
             int maximumControls = Shared.preferences.maxDownloadContainerControls;
             int maximumActive = Shared.preferences.maxActiveProcesses;
 
             ccDownloadsValue.Text = downloadsUnfinished.ToString() + " / " + maximumControls.ToString();
             ccActiveDownloadsValue.Text = downloadsActive.ToString() + " / " + maximumActive.ToString();
+
+            // Bug - changing a cursor for a specific control changes it globally
+            //if(downloadsUnfinished == 0)
+            //{
+            //    if (ccDownloadsDirectory.Cursor != Cursors.Hand)
+            //    {
+            //        ccDownloadsDirectory.Cursor = Cursors.Hand;
+            //    }
+            //}
+            //else
+            //{
+            //    if (ccDownloadsDirectory.Cursor != Cursors.No)
+            //    {
+            //        ccDownloadsContainer.Cursor = Cursors.No;
+            //    }
+            //}
+        }
+
+        private int getUnfinishedDownloadsCount()
+        {
+            int downloadsActive = DownloadContainer.getActiveProcessesCount();
+            int downloadsInQueue = DownloadContainer.getDownloadsQueueCount();
+            int downloadsInPreQueue = Shared.mainForm.getDownloadsPreQueueCount();
+
+            int downloadsUnfinished = downloadsActive + downloadsInQueue + downloadsInPreQueue;
+
+            return downloadsUnfinished;
         }
 
         private int getResourcesMissingCount()
@@ -397,6 +429,7 @@ namespace Lyre
             ccDownloadsDirectory.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Directory));
             ccDownloadsDirectory.BackColor = ccTopBar.BackColor;
             ccDownloadsDirectory.Click += CcDownloadsDirectory_Click;
+            ccDownloadsDirectory.Visible = false;
 
             ccHint = new Label();
             ccHint.Parent = ccTopBar;
@@ -596,20 +629,23 @@ namespace Lyre
 
         private void CcDownloadsDirectory_Click(object sender, EventArgs e)
         {
-            using (var folderDialog = new FolderBrowserDialog())
+            if (getUnfinishedDownloadsCount() == 0)
             {
-                folderDialog.Description = "Choose future downloads destination directory.";
-                if(Shared.preferences.downloadsDirectory.Equals("downloads"))
+                using (var folderDialog = new FolderBrowserDialog())
                 {
-                    folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Shared.preferences.downloadsDirectory);
-                }
-                else
-                {
-                    folderDialog.SelectedPath = Shared.preferences.downloadsDirectory;
-                }
-                if (folderDialog.ShowDialog() == DialogResult.OK)
-                {
-                    Shared.preferences.downloadsDirectory = folderDialog.SelectedPath;
+                    folderDialog.Description = "Choose future downloads destination directory.";
+                    if (Shared.preferences.downloadsDirectory.Equals("downloads"))
+                    {
+                        folderDialog.SelectedPath = Path.Combine(Directory.GetCurrentDirectory(), Shared.preferences.downloadsDirectory);
+                    }
+                    else
+                    {
+                        folderDialog.SelectedPath = Shared.preferences.downloadsDirectory;
+                    }
+                    if (folderDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        Shared.preferences.downloadsDirectory = folderDialog.SelectedPath;
+                    }
                 }
             }
         }
@@ -676,13 +712,13 @@ namespace Lyre
             ccSettingsButton.Width = ccFormClose.Width;
             ccSettingsButton.Height = ccFormClose.Height;
 
-            ccDownloadsDirectory.Top = barMargin;
-            ccDownloadsDirectory.Left = ccSettingsButton.Left + ccSettingsButton.Width + barMargin;
-            ccDownloadsDirectory.Height = ccFormClose.Height;
-            ccDownloadsDirectory.Width = ccFormClose.Width;
+            //ccDownloadsDirectory.Top = barMargin;
+            //ccDownloadsDirectory.Left = ccSettingsButton.Left + ccSettingsButton.Width + barMargin;
+            //ccDownloadsDirectory.Height = ccFormClose.Height;
+            //ccDownloadsDirectory.Width = ccFormClose.Width;
 
             ccVideoQuality.Top = barMargin;
-            ccVideoQuality.Left = ccDownloadsDirectory.Left + ccDownloadsDirectory.Width + barMargin;
+            ccVideoQuality.Left = ccSettingsButton.Left + ccSettingsButton.Width + barMargin;
             ccVideoQuality.Height = ccFormClose.Height;
 
             // status bar
