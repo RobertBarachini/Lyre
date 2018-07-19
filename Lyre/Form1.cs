@@ -58,12 +58,16 @@ namespace Lyre
         private Label ccCanConvertText;
         private CcToggle ccCanConvert;
 
+        // Instructions
+        private Panel ccPanelInstructions;
+        private RichTextBox ccTextInstructions;
 
         private object resourcesMissingCountLock = new object();
         private int resourcesMissingCount;
         private Queue<string> downloadsPreQueue = new Queue<string>();
         private System.Windows.Forms.Timer timerStatusUpdater;
         private System.Windows.Forms.Timer timerPreQueueHandler;
+        private bool noPreferencesFound;
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -81,6 +85,8 @@ namespace Lyre
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             Shared.mainForm = this;
+
+            noPreferencesFound = File.Exists(Shared.filePreferences);
 
             resourcesMissingCount = getResourcesMissingCount();
             try // if a dll is missing
@@ -457,6 +463,29 @@ namespace Lyre
             ccStatusBar.BackColor = Shared.preferences.colorBackground;
             ccStatusBar.BringToFront();
 
+            // Instructions
+            ccPanelInstructions = new Panel();
+            ccPanelInstructions.Parent = ccDownloadsContainer;
+            ccDownloadsContainer.Controls.Add(ccPanelInstructions);
+            ccPanelInstructions.BackColor = Shared.preferences.colorBackground;
+            ccPanelInstructions.BringToFront();
+            if(noPreferencesFound)
+            {
+                ccPanelInstructions.Visible = false;
+            }
+
+            ccTextInstructions = new RichTextBox();
+            ccTextInstructions.Parent = ccPanelInstructions;
+            ccPanelInstructions.Controls.Add(ccTextInstructions);
+            ccTextInstructions.BackColor = Shared.preferences.colorBackground;
+            ccTextInstructions.ForeColor = Shared.preferences.colorFontDefault;
+            ccTextInstructions.ReadOnly = true;
+            ccTextInstructions.BorderStyle = BorderStyle.None;
+            ccTextInstructions.LinkClicked += CcTextInstructions_LinkClicked;
+            ccTextInstructions.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
+            ccTextInstructions.Text = Shared.instructions;
+
+
             ccDownloadsText = new Label();
             ccDownloadsText.Parent = ccStatusBar;
             ccStatusBar.Controls.Add(ccDownloadsText);
@@ -531,6 +560,7 @@ namespace Lyre
             ccVideoQuality.Cursor = Cursors.Hand;
             ccVideoQuality.Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
             ccVideoQuality.MouseClick += CcVideoQuality_MouseClick;
+            ccVideoQuality.MouseDoubleClick += CcVideoQuality_MouseDoubleClick;
             ccVideoQuality.AutoSize = true;
             updateCcVideoQualityText();
 
@@ -554,6 +584,11 @@ namespace Lyre
             // Show the desired container - downloadsContainer is default
             turnOnContainerInvisibility();
             ccDownloadsContainer.Visible = true;
+        }
+
+        private void CcTextInstructions_LinkClicked(object sender, LinkClickedEventArgs e)
+        {
+            Process.Start(e.LinkText);
         }
 
         private void ccActiveDownloadsValue_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -617,6 +652,22 @@ namespace Lyre
         private void CcCanConvert_Click(object sender, EventArgs e)
         {
             Shared.preferences.canConvert = ccCanConvert.isON;
+        }
+
+        private void CcVideoQuality_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                Shared.increaseVideoQuality();
+                Shared.increaseVideoQuality();
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                Shared.decreaseVideoQuality();
+                Shared.increaseVideoQuality();
+            }
+
+            updateCcVideoQualityText();
         }
 
         private void CcVideoQuality_MouseClick(object sender, MouseEventArgs e)
@@ -818,6 +869,17 @@ namespace Lyre
             ccCanConvertText.Top = ccDownloadsText.Top;
             ccCanConvertText.Left = ccCanConvert.Left - 180;
 
+
+            ccPanelInstructions.Top = ccStatusBar.Top + ccStatusBar.Height + 50;
+            ccPanelInstructions.Left = ccStatusBar.Left;
+            ccPanelInstructions.Width = ccStatusBar.Width;
+            ccPanelInstructions.Height = 500;
+
+            ccTextInstructions.Top = 30;
+            ccTextInstructions.Left = 30;
+            ccTextInstructions.Width = ccTextInstructions.Parent.Width - (2 * ccTextInstructions.Left);
+            ccTextInstructions.Height = ccTextInstructions.Parent.Height - (2 * ccTextInstructions.Top);
+
             // download containers
             if (DownloadContainer.getDownloadsAccess().Count > 0)
             {
@@ -921,6 +983,8 @@ namespace Lyre
         {
             if(e.Control && e.KeyCode == Keys.V && copyPasteDown == false)
             {
+                ccPanelInstructions.Visible = false;
+
                 // queue download url-s
                 string clipboardString = Clipboard.GetText();
                 LinkedList<string> hits = new LinkedList<string>();

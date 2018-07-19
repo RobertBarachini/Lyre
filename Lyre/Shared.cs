@@ -112,4 +112,25 @@ public class Shared
             }
         }
     }
+
+    public static string instructions = @"General directions
+
+To use the downloader section of the program you can copy and paste YouTube links (or text containing links) anywhere inside the program. If the links are registered, the download should start.
+
+Preferences
+
+If you wish to increase the maximum video quality you can click on the top left button, labeled as (1080p 30). To decrease the maximum video quality use the right mouse button. To increase maximum number of concurrent downloads (waiting to start) click the button to the right of the component labeled as 'Downloads:'. To increase the number of concurrent videos that are being downloaded and converted click the button to the right of component, labeled as 'Active downloads:'. To decrease each of both values, use the right mouse button. If you wish to convert future to '.mp3' click the toggle button to the right of component labeled as 'Convert to.mp3'.
+
+Download panel
+
+If you wish to cancel a download you can click the small square which is located to the left of the video title. To play the finished download click the progress bar.To view the video thumbnail, click the on the image which is located at the very right of a download panel.
+
+To gain access to more settings (and these instructions) click the hexagonal button at the top left of the program.
+To gain even more information regarding the program or to give feedback, please feel free to contact me at program.lyre@gmail.com.
+To learn more about the coding side, visit us at https://github.com/RobertBarachini/Lyre.
+
+I hope you will enjoy my program!
+
+Best wishes,
+Robert Barachini";
 }
