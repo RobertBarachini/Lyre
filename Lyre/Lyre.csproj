@@ -57,6 +57,7 @@
       <HintPath>..\packages\taglib.2.1.0.0\lib\policy.2.0.taglib-sharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -89,7 +90,6 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="HistoryItem.cs" />
-    <Compile Include="OnlineResource.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceDownloader.cs" />
@@ -139,6 +139,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\Debug\resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LyreLibrary\LyreLibrary.csproj">
+      <Project>{69b9d851-c9b1-42b9-9660-1b39eb509335}</Project>
+      <Name>LyreLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

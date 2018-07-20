@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-class OnlineResource
+public class OnlineResource
 {
     public string credit; // who to credit - can be a name or a link to their site
     public string url; // location of resource file online
@@ -22,13 +22,23 @@ class OnlineResource
         this.waitForUser = waitForUser;
     }
 
+    // resources
+    public static readonly string resourcesWebsiteURL = "https://robertbarachini.github.io/projects/Lyre/resources/";
+    public static readonly string resourcesDirectory = "resources";
+    public static string FormControls_Minimize = "FormButtons_Minimize.png";
+    public static string FormControls_Maximize = "FormButtons_Maximize.png";
+    public static string FormControls_CloseSmall = "FormButtons_CloseSmall.png";
+    public static string FormControls_CloseBig = "FormButtons_CloseBig.png";
+    public static string FormControls_IMG_Directory = "IMG_Directory.png";
+    public static string FormControls_IMG_Settings = "IMG_Settings.png";
+
     // contains all resource and dependency links
     public static readonly List<OnlineResource> resourcesList = new List<OnlineResource>()
     {
         new OnlineResource
         (
             "https://www.ffmpeg.org/",
-            Shared.resourcesWebsiteURL + "ffmpeg.exe",
+            resourcesWebsiteURL + "ffmpeg.exe",
             Path.Combine("ffmpeg.exe"),
             false,
             false
@@ -36,7 +46,7 @@ class OnlineResource
         new OnlineResource
         (
             "https://www.ffmpeg.org/",
-            Shared.resourcesWebsiteURL + "ffprobe.exe",
+            resourcesWebsiteURL + "ffprobe.exe",
             Path.Combine("ffprobe.exe"),
             false,
             false
@@ -44,63 +54,63 @@ class OnlineResource
         new OnlineResource
         (
             "Robert Barachini",
-            Shared.resourcesWebsiteURL + Shared.FormControls_CloseBig,
-            Path.Combine(Shared.resourcesDirectory, Shared.FormControls_CloseBig),
+            resourcesWebsiteURL + FormControls_CloseBig,
+            Path.Combine(resourcesDirectory, FormControls_CloseBig),
             false,
             false
         ),
         new OnlineResource
         (
             "Robert Barachini",
-            Shared.resourcesWebsiteURL + Shared.FormControls_CloseSmall,
-            Path.Combine(Shared.resourcesDirectory, Shared.FormControls_CloseSmall),
+            resourcesWebsiteURL + FormControls_CloseSmall,
+            Path.Combine(resourcesDirectory, FormControls_CloseSmall),
             false,
             false
         ),
         new OnlineResource
         (
             "Robert Barachini",
-            Shared.resourcesWebsiteURL + Shared.FormControls_Maximize,
-            Path.Combine(Shared.resourcesDirectory, Shared.FormControls_Maximize),
+            resourcesWebsiteURL + FormControls_Maximize,
+            Path.Combine(resourcesDirectory, FormControls_Maximize),
             false,
             false
         ),
         new OnlineResource
         (
             "Robert Barachini",
-            Shared.resourcesWebsiteURL + Shared.FormControls_Minimize,
-            Path.Combine(Shared.resourcesDirectory, Shared.FormControls_Minimize),
+            resourcesWebsiteURL + FormControls_Minimize,
+            Path.Combine(resourcesDirectory, FormControls_Minimize),
             false,
             false
         ),
         new OnlineResource
         (
             "Robert Barachini",
-            Shared.resourcesWebsiteURL + "Icon3.png",
-            Path.Combine(Shared.resourcesDirectory, "Icon3.png"),
+            resourcesWebsiteURL + "Icon3.png",
+            Path.Combine(resourcesDirectory, "Icon3.png"),
             false,
             false
         ),
         new OnlineResource
         (
             "Robert Barachini",
-            Shared.resourcesWebsiteURL + Shared.FormControls_IMG_Directory,
-            Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Directory),
+            resourcesWebsiteURL + FormControls_IMG_Directory,
+            Path.Combine(resourcesDirectory, FormControls_IMG_Directory),
             false,
             false
         ),
         new OnlineResource
         (
             "Robert Barachini",
-            Shared.resourcesWebsiteURL + Shared.FormControls_IMG_Settings,
-            Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Settings),
+            resourcesWebsiteURL + FormControls_IMG_Settings,
+            Path.Combine(resourcesDirectory, FormControls_IMG_Settings),
             false,
             false
         ),
         new OnlineResource
         (
             "Robert Barachini",
-            Shared.resourcesWebsiteURL + "Lyre.ico",
+            resourcesWebsiteURL + "Lyre.ico",
             Path.Combine("Lyre.ico"),
             false,
             false
@@ -108,7 +118,7 @@ class OnlineResource
         new OnlineResource
         (
             "https://www.newtonsoft.com/json",
-            Shared.resourcesWebsiteURL + "Newtonsoft.Json.dll",
+            resourcesWebsiteURL + "Newtonsoft.Json.dll",
             Path.Combine("Newtonsoft.Json.dll"),
             false,
             false
@@ -116,7 +126,7 @@ class OnlineResource
         new OnlineResource
         (
             "https://www.newtonsoft.com/json",
-            Shared.resourcesWebsiteURL + "Newtonsoft.Json.xml",
+            resourcesWebsiteURL + "Newtonsoft.Json.xml",
             Path.Combine("Newtonsoft.Json.xml"),
             false,
             false
@@ -124,7 +134,7 @@ class OnlineResource
         new OnlineResource
         (
             "https://github.com/mono/taglib-sharp",
-            Shared.resourcesWebsiteURL + "policy.2.0.taglib-sharp.config",
+            resourcesWebsiteURL + "policy.2.0.taglib-sharp.config",
             Path.Combine("policy.2.0.taglib-sharp.config"),
             false,
             false
@@ -132,7 +142,7 @@ class OnlineResource
         new OnlineResource
         (
             "https://github.com/mono/taglib-sharp",
-            Shared.resourcesWebsiteURL + "policy.2.0.taglib-sharp.dll",
+            resourcesWebsiteURL + "policy.2.0.taglib-sharp.dll",
             Path.Combine("policy.2.0.taglib-sharp.dll"),
             false,
             false
@@ -140,7 +150,7 @@ class OnlineResource
         new OnlineResource
         (
             "https://github.com/mono/taglib-sharp",
-            Shared.resourcesWebsiteURL + "taglib-sharp.dll",
+            resourcesWebsiteURL + "taglib-sharp.dll",
             Path.Combine("taglib-sharp.dll"),
             false,
             false
@@ -148,7 +158,7 @@ class OnlineResource
         new OnlineResource
         (
             "https://rg3.github.io/youtube-dl/",
-            Shared.resourcesWebsiteURL + "youtube-dl.exe",
+            resourcesWebsiteURL + "youtube-dl.exe",
             Path.Combine("youtube-dl.exe"),
             false,
             false

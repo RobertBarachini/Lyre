@@ -351,7 +351,7 @@ namespace Lyre
             ccContainerFiles.Controls.Add(ccButtonFolderDownloads);
             ccButtonFolderDownloads.Cursor = Cursors.Hand;
             ccButtonFolderDownloads.BackgroundImageLayout = ImageLayout.Zoom;
-            ccButtonFolderDownloads.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Directory));
+            ccButtonFolderDownloads.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory));
             ccButtonFolderDownloads.BackColor = ccContainerFiles.BackColor;
             ccButtonFolderDownloads.Click += ccButtonFolderDownloads_Click;
 
@@ -380,7 +380,7 @@ namespace Lyre
             ccContainerFiles.Controls.Add(ccButtonFolderTemp);
             ccButtonFolderTemp.Cursor = Cursors.Hand;
             ccButtonFolderTemp.BackgroundImageLayout = ImageLayout.Zoom;
-            ccButtonFolderTemp.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Directory));
+            ccButtonFolderTemp.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory));
             ccButtonFolderTemp.BackColor = ccContainerFiles.BackColor;
             ccButtonFolderTemp.Click += CcButtonFolderTemp_Click;
 

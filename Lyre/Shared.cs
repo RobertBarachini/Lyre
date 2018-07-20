@@ -24,16 +24,6 @@ public class Shared
     // shared preferences variable
     public static Preferences preferences = new Preferences(); // preferences object
 
-    // resources
-    public static readonly string resourcesWebsiteURL = "https://robertbarachini.github.io/projects/Lyre/resources/";
-    public static readonly string resourcesDirectory = "resources";
-    public static string FormControls_Minimize = "FormButtons_Minimize.png";
-    public static string FormControls_Maximize = "FormButtons_Maximize.png";
-    public static string FormControls_CloseSmall = "FormButtons_CloseSmall.png";
-    public static string FormControls_CloseBig = "FormButtons_CloseBig.png";
-    public static string FormControls_IMG_Directory = "IMG_Directory.png";
-    public static string FormControls_IMG_Settings = "IMG_Settings.png";
-
     public static string getVideoQualityString(int qualitySelector)
     {
         string selectedQ = getVideoQualityStringPure(qualitySelector);

@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lyre", "Lyre\Lyre.csproj", "{12823757-66C5-4F0C-83E3-A8A26B637BB7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyreUpdater", "LyreUpdater\LyreUpdater.csproj", "{77D15EDC-8AF0-411B-9FAD-70298083E146}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyreLibrary", "LyreLibrary\LyreLibrary.csproj", "{69B9D851-C9B1-42B9-9660-1B39EB509335}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{12823757-66C5-4F0C-83E3-A8A26B637BB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12823757-66C5-4F0C-83E3-A8A26B637BB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12823757-66C5-4F0C-83E3-A8A26B637BB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77D15EDC-8AF0-411B-9FAD-70298083E146}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77D15EDC-8AF0-411B-9FAD-70298083E146}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77D15EDC-8AF0-411B-9FAD-70298083E146}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77D15EDC-8AF0-411B-9FAD-70298083E146}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69B9D851-C9B1-42B9-9660-1B39EB509335}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69B9D851-C9B1-42B9-9660-1B39EB509335}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69B9D851-C9B1-42B9-9660-1B39EB509335}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69B9D851-C9B1-42B9-9660-1B39EB509335}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

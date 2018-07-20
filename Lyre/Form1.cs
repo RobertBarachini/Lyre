@@ -19,6 +19,8 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Net;
 
+using LyreLibrary;
+
 namespace Lyre
 {
     public partial class Form1 : Form
@@ -27,6 +29,7 @@ namespace Lyre
         {
             InitializeComponent();
         }
+
 
         //public static Preferences preferences; // preferences object
 
@@ -373,13 +376,15 @@ namespace Lyre
             ccTopBar.BackColor = Shared.preferences.colorBackground;
             ccTopBar.MouseDown += Form1_MouseDown;
 
-            ccDownloadsContainer = new Panel();
-            ccDownloadsContainer.Parent = ccContainer;
-            ccContainer.Controls.Add(ccDownloadsContainer);
-            ccDownloadsContainer.BackColor = Shared.preferences.colorForeground;
-            ccDownloadsContainer.AutoScroll = true;
+            ccDownloadsContainer = new Panel()
+            {
+                Parent = ccContainer,
+                BackColor = Shared.preferences.colorForeground,
+                AutoScroll = true
+            };
             ccDownloadsContainer.KeyDown += Paste_KeyDown;
             ccDownloadsContainer.KeyUp += Paste_KeyUp;
+            ccContainer.Controls.Add(ccDownloadsContainer);
 
             ccSettingsContainer = new Panel();
             ccSettingsContainer.Parent = ccContainer;
@@ -402,7 +407,7 @@ namespace Lyre
             ccTopBar.Controls.Add(ccFormMinimize);
             ccFormMinimize.Cursor = Cursors.Hand;
             ccFormMinimize.BackgroundImageLayout = ImageLayout.Zoom;
-            ccFormMinimize.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_Minimize));
+            ccFormMinimize.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_Minimize));
             ccFormMinimize.BackColor = ccTopBar.BackColor;
             ccFormMinimize.Click += CcFormMinimize_Click;
             ccFormMinimize.Visible = false;
@@ -412,7 +417,7 @@ namespace Lyre
             ccTopBar.Controls.Add(ccFormMaximize);
             ccFormMaximize.Cursor = Cursors.Hand;
             ccFormMaximize.BackgroundImageLayout = ImageLayout.Zoom;
-            ccFormMaximize.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_Maximize));
+            ccFormMaximize.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_Maximize));
             ccFormMaximize.BackColor = ccTopBar.BackColor;
             ccFormMaximize.Click += CcFormMaximize_Click;
             ccFormMaximize.Visible = false;
@@ -422,7 +427,7 @@ namespace Lyre
             ccTopBar.Controls.Add(ccFormClose);
             ccFormClose.Cursor = Cursors.Hand;
             ccFormClose.BackgroundImageLayout = ImageLayout.Zoom;
-            ccFormClose.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_CloseBig));
+            ccFormClose.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_CloseBig));
             ccFormClose.BackColor = ccTopBar.BackColor;
             ccFormClose.Click += CcFormClose_Click;
             ccFormClose.Visible = false;
@@ -432,7 +437,7 @@ namespace Lyre
             ccTopBar.Controls.Add(ccDownloadsDirectory);
             ccDownloadsDirectory.Cursor = Cursors.Hand;
             ccDownloadsDirectory.BackgroundImageLayout = ImageLayout.Zoom;
-            ccDownloadsDirectory.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Directory));
+            ccDownloadsDirectory.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory));
             ccDownloadsDirectory.BackColor = ccTopBar.BackColor;
             ccDownloadsDirectory.Click += CcDownloadsDirectory_Click;
             ccDownloadsDirectory.Visible = false;
@@ -451,7 +456,7 @@ namespace Lyre
             ccTopBar.Controls.Add(ccSettingsButton);
             ccSettingsButton.Cursor = Cursors.Hand;
             ccSettingsButton.BackgroundImageLayout = ImageLayout.Zoom;
-            ccSettingsButton.BackgroundImage = getImage(Path.Combine(Shared.resourcesDirectory, Shared.FormControls_IMG_Settings));
+            ccSettingsButton.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Settings));
             ccSettingsButton.BackColor = ccTopBar.BackColor;
             ccSettingsButton.Click += CcSettings_Click;
             ccSettingsButton.Visible = true;
