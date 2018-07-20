@@ -74,16 +74,20 @@ namespace Lyre
             this.SizeChanged += CcSettings_SizeChanged;
             this.AutoSize = true;
 
-            ccPicker = new ColorDialog();
-            ccPicker.AllowFullOpen = true;
-            ccPicker.AnyColor = true;
-            ccPicker.FullOpen = true;
+            ccPicker = new ColorDialog()
+            {
+                AllowFullOpen = true,
+                AnyColor = true,
+                FullOpen = true
+            };
 
             InitComponents();
             resizeComponents();
 
-            timerStatusUpdater = new System.Windows.Forms.Timer();
-            timerStatusUpdater.Interval = 1000;
+            timerStatusUpdater = new System.Windows.Forms.Timer()
+            {
+                Interval = 1000
+            };
             timerStatusUpdater.Tick += TimerStatusUpdater_Tick;
             timerStatusUpdater.Start();
         }
@@ -129,266 +133,332 @@ namespace Lyre
 
         private void InitComponents()
         {
-            ccLabelSettins = new Label();
-            ccLabelSettins.Parent = this;
-            this.Controls.Add(ccLabelSettins);
-            ccLabelSettins.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelSettins.Font = new Font(Shared.preferences.fontDefault.FontFamily, 36, GraphicsUnit.Pixel);
-            ccLabelSettins.Text = "Settings";
-            ccLabelSettins.AutoSize = true;
+            ccLabelSettins = new Label()
+            {
+                Parent = this,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 36, GraphicsUnit.Pixel),
+                Text = "Settings",
+                AutoSize = true
+            };
+            Controls.Add(ccLabelSettins);
 
             // Colors
-            ccContainerColors = new Panel();
-            ccContainerColors.Parent = this;
-            this.Controls.Add(ccContainerColors);
-            ccContainerColors.BackColor = Shared.preferences.colorBackground;//Shared.preferences.colorAccent2;
-            ccContainerColors.AutoSize = true;
+            ccContainerColors = new Panel()
+            {
+                Parent = this,
+                BackColor = Shared.preferences.colorBackground,
+                AutoSize = true
+            };
+            Controls.Add(ccContainerColors);
 
-            ccTitleColors = new Label();
-            ccTitleColors.Parent = ccContainerColors;
+
+            ccTitleColors = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 28, GraphicsUnit.Pixel),
+                Text = "Colors",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccTitleColors);
-            ccTitleColors.ForeColor = Shared.preferences.colorFontDefault;
-            ccTitleColors.Font = new Font(Shared.preferences.fontDefault.FontFamily, 28, GraphicsUnit.Pixel);
-            ccTitleColors.Text = "Colors";
-            ccTitleColors.AutoSize = true;
 
 
-            ccLabelColorFont = new Label();
-            ccLabelColorFont.Parent = ccContainerColors;
+            ccLabelColorFont = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Font color:",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccLabelColorFont);
-            ccLabelColorFont.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelColorFont.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelColorFont.Text = "Font color:";
-            ccLabelColorFont.AutoSize = true;
 
-            ccPanelColorFont = new Panel();
-            ccPanelColorFont.Parent = ccContainerColors;
-            ccContainerColors.Controls.Add(ccPanelColorFont);
-            ccPanelColorFont.BackColor = Shared.preferences.colorFontDefault;
-            ccPanelColorFont.Cursor = Cursors.Hand;
+            ccPanelColorFont = new Panel()
+            {
+                Parent = ccContainerColors,
+                BackColor = Shared.preferences.colorFontDefault,
+                Cursor = Cursors.Hand
+            };
             ccPanelColorFont.Click += CcPanelColorFont_Click;
+            ccContainerColors.Controls.Add(ccPanelColorFont);
 
 
-            ccLabelColorForeground = new Label();
-            ccLabelColorForeground.Parent = ccContainerColors;
+            ccLabelColorForeground = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Background light:",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccLabelColorForeground);
-            ccLabelColorForeground.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelColorForeground.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelColorForeground.Text = "Background light:";
-            ccLabelColorForeground.AutoSize = true;
 
-            ccPanelColorForeground = new Panel();
-            ccPanelColorForeground.Parent = ccContainerColors;
-            ccContainerColors.Controls.Add(ccPanelColorForeground);
-            ccPanelColorForeground.BackColor = Shared.preferences.colorForeground;
-            ccPanelColorForeground.Cursor = Cursors.Hand;
+            ccPanelColorForeground = new Panel()
+            {
+                Parent = ccContainerColors,
+                BackColor = Shared.preferences.colorForeground,
+                Cursor = Cursors.Hand
+            };
             ccPanelColorForeground.Click += CcPanelColorForeground_Click;
+            ccContainerColors.Controls.Add(ccPanelColorForeground);
 
 
-            ccLabelColorBackground = new Label();
-            ccLabelColorBackground.Parent = ccContainerColors;
+            ccLabelColorBackground = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Background dark:",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccLabelColorBackground);
-            ccLabelColorBackground.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelColorBackground.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelColorBackground.Text = "Background dark:";
-            ccLabelColorBackground.AutoSize = true;
 
-            ccPanelColorBackground = new Panel();
-            ccPanelColorBackground.Parent = ccContainerColors;
-            ccContainerColors.Controls.Add(ccPanelColorBackground);
-            ccPanelColorBackground.BackColor = Shared.preferences.colorBackground;
-            ccPanelColorBackground.Cursor = Cursors.Hand;
+            ccPanelColorBackground = new Panel()
+            {
+                Parent = ccContainerColors,
+                BackColor = Shared.preferences.colorBackground,
+                Cursor = Cursors.Hand,
+                BorderStyle = BorderStyle.FixedSingle
+            };
             ccPanelColorBackground.Click += CcPanelColorBackground_Click;
-            ccPanelColorBackground.BorderStyle = BorderStyle.FixedSingle;
+            ccContainerColors.Controls.Add(ccPanelColorBackground);
 
 
-            ccLabelColorAccent1 = new Label();
-            ccLabelColorAccent1.Parent = ccContainerColors;
+            ccLabelColorAccent1 = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Accent 1:",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccLabelColorAccent1);
-            ccLabelColorAccent1.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelColorAccent1.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelColorAccent1.Text = "Accent 1:";
-            ccLabelColorAccent1.AutoSize = true;
 
-            ccPanelColorAccent1 = new Panel();
-            ccPanelColorAccent1.Parent = ccContainerColors;
-            ccContainerColors.Controls.Add(ccPanelColorAccent1);
-            ccPanelColorAccent1.BackColor = Shared.preferences.colorAccent1;
-            ccPanelColorAccent1.Cursor = Cursors.Hand;
+            ccPanelColorAccent1 = new Panel()
+            {
+                Parent = ccContainerColors,
+                BackColor = Shared.preferences.colorAccent1,
+                Cursor = Cursors.Hand
+            };
             ccPanelColorAccent1.Click += CcPanelColorAccent1_Click;
+            ccContainerColors.Controls.Add(ccPanelColorAccent1);
 
-            ccLabelColorAccent2 = new Label();
-            ccLabelColorAccent2.Parent = ccContainerColors;
+
+            ccLabelColorAccent2 = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Accent 2:",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccLabelColorAccent2);
-            ccLabelColorAccent2.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelColorAccent2.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelColorAccent2.Text = "Accent 2:";
-            ccLabelColorAccent2.AutoSize = true;
 
-            ccPanelColorAccent2 = new Panel();
-            ccPanelColorAccent2.Parent = ccContainerColors;
-            ccContainerColors.Controls.Add(ccPanelColorAccent2);
-            ccPanelColorAccent2.BackColor = Shared.preferences.colorAccent2;
-            ccPanelColorAccent2.Cursor = Cursors.Hand;
+            ccPanelColorAccent2 = new Panel()
+            {
+                Parent = ccContainerColors,
+                BackColor = Shared.preferences.colorAccent2,
+                Cursor = Cursors.Hand
+            };
             ccPanelColorAccent2.Click += CcPanelColorAccent2_Click;
+            ccContainerColors.Controls.Add(ccPanelColorAccent2);
 
 
-            ccLabelColorAccent3 = new Label();
-            ccLabelColorAccent3.Parent = ccContainerColors;
+            ccLabelColorAccent3 = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Accent 3:",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccLabelColorAccent3);
-            ccLabelColorAccent3.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelColorAccent3.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelColorAccent3.Text = "Accent 3:";
-            ccLabelColorAccent3.AutoSize = true;
 
-            ccPanelColorAccent3 = new Panel();
-            ccPanelColorAccent3.Parent = ccContainerColors;
-            ccContainerColors.Controls.Add(ccPanelColorAccent3);
-            ccPanelColorAccent3.BackColor = Shared.preferences.colorAccent3;
-            ccPanelColorAccent3.Cursor = Cursors.Hand;
+            ccPanelColorAccent3 = new Panel()
+            {
+                Parent = ccContainerColors,
+                BackColor = Shared.preferences.colorAccent3,
+                Cursor = Cursors.Hand
+            };
             ccPanelColorAccent3.Click += CcPanelColorAccent3_Click;
+            ccContainerColors.Controls.Add(ccPanelColorAccent3);
 
 
-            ccLabelColorAccent4 = new Label();
-            ccLabelColorAccent4.Parent = ccContainerColors;
+            ccLabelColorAccent4 = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Accent 4:",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccLabelColorAccent4);
-            ccLabelColorAccent4.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelColorAccent4.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelColorAccent4.Text = "Accent 4:";
-            ccLabelColorAccent4.AutoSize = true;
 
-            ccPanelColorAccent4 = new Panel();
-            ccPanelColorAccent4.Parent = ccContainerColors;
-            ccContainerColors.Controls.Add(ccPanelColorAccent4);
-            ccPanelColorAccent4.BackColor = Shared.preferences.colorAccent4;
-            ccPanelColorAccent4.Cursor = Cursors.Hand;
+            ccPanelColorAccent4 = new Panel()
+            {
+                Parent = ccContainerColors,
+                BackColor = Shared.preferences.colorAccent4,
+                Cursor = Cursors.Hand
+            };
             ccPanelColorAccent4.Click += CcPanelColorAccent4_Click;
+            ccContainerColors.Controls.Add(ccPanelColorAccent4);
 
 
-            ccLabelColorAccent5 = new Label();
-            ccLabelColorAccent5.Parent = ccContainerColors;
+            ccLabelColorAccent5 = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Accent 5:",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccLabelColorAccent5);
-            ccLabelColorAccent5.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelColorAccent5.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelColorAccent5.Text = "Accent 5:";
-            ccLabelColorAccent5.AutoSize = true;
 
-            ccPanelColorAccent5 = new Panel();
-            ccPanelColorAccent5.Parent = ccContainerColors;
-            ccContainerColors.Controls.Add(ccPanelColorAccent5);
-            ccPanelColorAccent5.BackColor = Shared.preferences.colorAccent5;
-            ccPanelColorAccent5.Cursor = Cursors.Hand;
+            ccPanelColorAccent5 = new Panel()
+            {
+                Parent = ccContainerColors,
+                BackColor = Shared.preferences.colorAccent5,
+                Cursor = Cursors.Hand
+            };
             ccPanelColorAccent5.Click += CcPanelColorAccent5_Click;
+            ccContainerColors.Controls.Add(ccPanelColorAccent5);
 
-            ccLabelColorAccent6 = new Label();
-            ccLabelColorAccent6.Parent = ccContainerColors;
+            ccLabelColorAccent6 = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Accent 6:",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccLabelColorAccent6);
-            ccLabelColorAccent6.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelColorAccent6.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelColorAccent6.Text = "Accent 6:";
-            ccLabelColorAccent6.AutoSize = true;
 
-            ccPanelColorAccent6 = new Panel();
-            ccPanelColorAccent6.Parent = ccContainerColors;
-            ccContainerColors.Controls.Add(ccPanelColorAccent6);
-            ccPanelColorAccent6.BackColor = Shared.preferences.colorAccent6;
-            ccPanelColorAccent6.Cursor = Cursors.Hand;
+            ccPanelColorAccent6 = new Panel()
+            {
+                Parent = ccContainerColors,
+                BackColor = Shared.preferences.colorAccent6,
+                Cursor = Cursors.Hand
+            };
             ccPanelColorAccent6.Click += CcPanelColorAccent6_Click;
+            ccContainerColors.Controls.Add(ccPanelColorAccent6);
 
 
-            ccLabelColorAccent7 = new Label();
-            ccLabelColorAccent7.Parent = ccContainerColors;
+            ccLabelColorAccent7 = new Label()
+            {
+                Parent = ccContainerColors,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Accent 7:",
+                AutoSize = true
+            };
             ccContainerColors.Controls.Add(ccLabelColorAccent7);
-            ccLabelColorAccent7.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelColorAccent7.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelColorAccent7.Text = "Accent 7:";
-            ccLabelColorAccent7.AutoSize = true;
 
-            ccPanelColorAccent7 = new Panel();
-            ccPanelColorAccent7.Parent = ccContainerColors;
-            ccContainerColors.Controls.Add(ccPanelColorAccent7);
-            ccPanelColorAccent7.BackColor = Shared.preferences.colorAccent7;
-            ccPanelColorAccent7.Cursor = Cursors.Hand;
+            ccPanelColorAccent7 = new Panel()
+            {
+                Parent = ccContainerColors,
+                BackColor = Shared.preferences.colorAccent7,
+                Cursor = Cursors.Hand
+            };
             ccPanelColorAccent7.Click += CcPanelColorAccent7_Click;
+            ccContainerColors.Controls.Add(ccPanelColorAccent7);
 
             // File folder
-            ccContainerFiles = new Panel();
-            ccContainerFiles.Parent = this;
-            this.Controls.Add(ccContainerFiles);
-            ccContainerFiles.BackColor = Shared.preferences.colorBackground;
-            ccContainerFiles.AutoSize = true;
+            ccContainerFiles = new Panel()
+            {
+                Parent = this,
+                BackColor = Shared.preferences.colorBackground,
+                AutoSize = true
+            };
+            Controls.Add(ccContainerFiles);
 
-            ccTitleFiles = new Label();
-            ccTitleFiles.Parent = ccContainerFiles;
+            ccTitleFiles = new Label()
+            {
+                Parent = ccContainerFiles,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 28, GraphicsUnit.Pixel),
+                Text = "File folders",
+                AutoSize = true
+            };
             ccContainerFiles.Controls.Add(ccTitleFiles);
-            ccTitleFiles.ForeColor = Shared.preferences.colorFontDefault;
-            ccTitleFiles.Font = new Font(Shared.preferences.fontDefault.FontFamily, 28, GraphicsUnit.Pixel);
-            ccTitleFiles.Text = "File folders";
-            ccTitleFiles.AutoSize = true;
 
 
-            ccLabelFolderDownloads = new Label();
-            ccLabelFolderDownloads.Parent = ccContainerFiles;
+            ccLabelFolderDownloads = new Label()
+            {
+                Parent = ccContainerFiles,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Downloads folder: ",
+                AutoSize = true
+            };
             ccContainerFiles.Controls.Add(ccLabelFolderDownloads);
-            ccLabelFolderDownloads.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelFolderDownloads.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelFolderDownloads.Text = "Downloads folder: ";
-            ccLabelFolderDownloads.AutoSize = true;
 
-            ccTextFolderDownloads = new RichTextBox();
-            ccTextFolderDownloads.Parent = ccContainerFiles;
+            ccTextFolderDownloads = new RichTextBox()
+            {
+                Parent = ccContainerFiles,
+                ForeColor = Shared.preferences.colorFontDefault,
+                BackColor = ccContainerFiles.BackColor,
+                BorderStyle = BorderStyle.None,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                ReadOnly = true,
+                WordWrap = true,
+                Text = Path.GetFullPath(Shared.preferences.downloadsDirectory)
+            };
             ccContainerFiles.Controls.Add(ccTextFolderDownloads);
-            ccTextFolderDownloads.ForeColor = Shared.preferences.colorFontDefault;
-            ccTextFolderDownloads.BackColor = ccContainerFiles.BackColor;
-            ccTextFolderDownloads.BorderStyle = BorderStyle.None;
-            ccTextFolderDownloads.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccTextFolderDownloads.ReadOnly = true;
-            ccTextFolderDownloads.WordWrap = true;
-            ccTextFolderDownloads.Text = Path.GetFullPath(Shared.preferences.downloadsDirectory);
 
-            ccButtonFolderDownloads = new Panel();
-            ccButtonFolderDownloads.Parent = ccContainerFiles;
-            ccContainerFiles.Controls.Add(ccButtonFolderDownloads);
-            ccButtonFolderDownloads.Cursor = Cursors.Hand;
-            ccButtonFolderDownloads.BackgroundImageLayout = ImageLayout.Zoom;
-            ccButtonFolderDownloads.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory));
-            ccButtonFolderDownloads.BackColor = ccContainerFiles.BackColor;
+            ccButtonFolderDownloads = new Panel()
+            {
+                Parent = ccContainerFiles,
+                Cursor = Cursors.Hand,
+                BackgroundImageLayout = ImageLayout.Zoom,
+                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory)),
+                BackColor = ccContainerFiles.BackColor
+            };
             ccButtonFolderDownloads.Click += ccButtonFolderDownloads_Click;
+            ccContainerFiles.Controls.Add(ccButtonFolderDownloads);
 
 
-            ccLabelFolderTemp = new Label();
-            ccLabelFolderTemp.Parent = ccContainerFiles;
+            ccLabelFolderTemp = new Label()
+            {
+                Parent = ccContainerFiles,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Temporary files: ",
+                AutoSize = true
+            };
             ccContainerFiles.Controls.Add(ccLabelFolderTemp);
-            ccLabelFolderTemp.ForeColor = Shared.preferences.colorFontDefault;
-            ccLabelFolderTemp.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccLabelFolderTemp.Text = "Temporary files: ";
-            ccLabelFolderTemp.AutoSize = true;
 
-            ccTextFolderTemp = new RichTextBox();
-            ccTextFolderTemp.Parent = ccContainerFiles;
+            ccTextFolderTemp = new RichTextBox()
+            {
+                Parent = ccContainerFiles,
+                ForeColor = Shared.preferences.colorFontDefault,
+                BackColor = ccContainerFiles.BackColor,
+                BorderStyle = BorderStyle.None,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                ReadOnly = true,
+                WordWrap = true,
+                Text = Path.GetFullPath(Shared.preferences.tempDirectoy)
+            };
             ccContainerFiles.Controls.Add(ccTextFolderTemp);
-            ccTextFolderTemp.ForeColor = Shared.preferences.colorFontDefault;
-            ccTextFolderTemp.BackColor = ccContainerFiles.BackColor;
-            ccTextFolderTemp.BorderStyle = BorderStyle.None;
-            ccTextFolderTemp.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccTextFolderTemp.ReadOnly = true;
-            ccTextFolderTemp.WordWrap = true;
-            ccTextFolderTemp.Text = Path.GetFullPath(Shared.preferences.tempDirectoy);
 
-            ccButtonFolderTemp = new Panel();
-            ccButtonFolderTemp.Parent = ccContainerFiles;
-            ccContainerFiles.Controls.Add(ccButtonFolderTemp);
-            ccButtonFolderTemp.Cursor = Cursors.Hand;
-            ccButtonFolderTemp.BackgroundImageLayout = ImageLayout.Zoom;
-            ccButtonFolderTemp.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory));
-            ccButtonFolderTemp.BackColor = ccContainerFiles.BackColor;
+            ccButtonFolderTemp = new Panel()
+            {
+                Parent = ccContainerFiles,
+                Cursor = Cursors.Hand,
+                BackgroundImageLayout = ImageLayout.Zoom,
+                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory)),
+                BackColor = ccContainerFiles.BackColor
+            };
             ccButtonFolderTemp.Click += CcButtonFolderTemp_Click;
+            ccContainerFiles.Controls.Add(ccButtonFolderTemp);
 
             // Bottom margin
-            ccBottomMargin = new Panel();
-            ccBottomMargin.Parent = this;
-            this.Controls.Add(ccBottomMargin);
-            ccBottomMargin.BackColor = this.BackColor;
+            ccBottomMargin = new Panel()
+            {
+                Parent = this,
+                BackColor = BackColor
+            };
+            Controls.Add(ccBottomMargin);
         }
 
         private int getUnfinishedDownloadsCount()
@@ -606,7 +676,6 @@ namespace Lyre
         {
             int bottomMargin = 30;
             int bottomMarginM = 20;
-            int bottomMarginS = 10;
 
             ccLabelSettins.Left = 30;
             ccLabelSettins.Top = 70;

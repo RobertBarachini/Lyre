@@ -19,8 +19,6 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Net;
 
-using LyreLibrary;
-
 namespace Lyre
 {
     public partial class Form1 : Form
@@ -124,13 +122,17 @@ namespace Lyre
                 getResources();
             }
 
-            timerStatusUpdater = new System.Windows.Forms.Timer();
-            timerStatusUpdater.Interval = 1000;
+            timerStatusUpdater = new System.Windows.Forms.Timer()
+            {
+                Interval = 1000
+            };
             timerStatusUpdater.Tick += TimerStatusUpdater_Tick;
             timerStatusUpdater.Start();
 
-            timerPreQueueHandler = new System.Windows.Forms.Timer();
-            timerPreQueueHandler.Interval = 1000;
+            timerPreQueueHandler = new System.Windows.Forms.Timer()
+            {
+                Interval = 1000
+            };
             timerPreQueueHandler.Tick += TimerPreQueueHandler_Tick;
             timerPreQueueHandler.Start();
 
@@ -348,33 +350,37 @@ namespace Lyre
 
         private void InitComponents()
         {
-            this.Text = "Lyre - A music app by Robert Barachini";
-            this.FormClosing += Form1_FormClosing;
-            this.DoubleBuffered = true;
-            this.Width = Shared.preferences.formWidth;
-            this.Height = Shared.preferences.formHeight;
-            this.Top = Shared.preferences.formTop;
-            this.Height = Shared.preferences.formHeight;
-            this.SizeChanged += Form1_SizeChanged;
-            this.KeyDown += Paste_KeyDown;
-            this.KeyUp += Paste_KeyUp;
-            this.BackColor = Color.Lime;//Shared.preferences.colorForeground;
-            //this.FormBorderStyle = FormBorderStyle.None;
-            this.MouseMove += Form1_MouseMove;
-            this.MouseDown += Form1_MouseDown;
-            this.KeyPreview = true;
+            Text = "Lyre - A music app by Robert Barachini";
+            FormClosing += Form1_FormClosing;
+            DoubleBuffered = true;
+            Width = Shared.preferences.formWidth;
+            Height = Shared.preferences.formHeight;
+            Top = Shared.preferences.formTop;
+            Height = Shared.preferences.formHeight;
+            SizeChanged += Form1_SizeChanged;
+            KeyDown += Paste_KeyDown;
+            KeyUp += Paste_KeyUp;
+            BackColor = Color.Lime;//Shared.preferences.colorForeground;
+            //FormBorderStyle = FormBorderStyle.None;
+            MouseMove += Form1_MouseMove;
+            MouseDown += Form1_MouseDown;
+            KeyPreview = true;
 
-            ccContainer = new Panel();
-            ccContainer.Parent = this;
-            this.Controls.Add(ccContainer);
-            ccContainer.BackColor = Shared.preferences.colorForeground;
-            ccContainer.Dock = DockStyle.Fill;
+            ccContainer = new Panel()
+            {
+                Parent = this,
+                BackColor = Shared.preferences.colorForeground,
+                Dock = DockStyle.Fill
+            };
+            Controls.Add(ccContainer);
 
-            ccTopBar = new Panel();
-            ccTopBar.Parent = ccContainer;
-            ccContainer.Controls.Add(ccTopBar);
-            ccTopBar.BackColor = Shared.preferences.colorBackground;
+            ccTopBar = new Panel()
+            {
+                Parent = ccContainer,
+                BackColor = Shared.preferences.colorBackground
+            };
             ccTopBar.MouseDown += Form1_MouseDown;
+            ccContainer.Controls.Add(ccTopBar);
 
             ccDownloadsContainer = new Panel()
             {
@@ -386,202 +392,242 @@ namespace Lyre
             ccDownloadsContainer.KeyUp += Paste_KeyUp;
             ccContainer.Controls.Add(ccDownloadsContainer);
 
-            ccSettingsContainer = new Panel();
-            ccSettingsContainer.Parent = ccContainer;
+            ccSettingsContainer = new Panel()
+            {
+                Parent = ccContainer,
+                BackColor = Shared.preferences.colorForeground,
+                AutoScroll = true
+            };
             ccContainer.Controls.Add(ccSettingsContainer);
-            ccSettingsContainer.BackColor = Shared.preferences.colorForeground;
-            ccSettingsContainer.AutoScroll = true;
 
-            ccSettingsPanel = new CcSettings();
-            ccSettingsPanel.Parent = ccSettingsContainer;
-            ccSettingsContainer.Controls.Add(ccSettingsPanel);
+            ccSettingsPanel = new CcSettings()
+            {
+                Parent = ccSettingsContainer
+            };
             //ccSettingsPanel.AutoScroll = true;
+            ccSettingsContainer.Controls.Add(ccSettingsPanel);
 
-            ccSettingsBottomMargin = new Panel();
-            ccSettingsBottomMargin.Parent = ccSettingsContainer;
+            ccSettingsBottomMargin = new Panel()
+            {
+                Parent = ccSettingsContainer,
+                BackColor = ccSettingsContainer.BackColor
+            };
             ccSettingsContainer.Controls.Add(ccSettingsBottomMargin);
-            ccSettingsBottomMargin.BackColor = ccSettingsContainer.BackColor;
 
-            ccFormMinimize = new Panel();
-            ccFormMinimize.Parent = ccTopBar;
-            ccTopBar.Controls.Add(ccFormMinimize);
-            ccFormMinimize.Cursor = Cursors.Hand;
-            ccFormMinimize.BackgroundImageLayout = ImageLayout.Zoom;
-            ccFormMinimize.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_Minimize));
-            ccFormMinimize.BackColor = ccTopBar.BackColor;
+            ccFormMinimize = new Panel()
+            {
+                Parent = ccTopBar,
+                Cursor = Cursors.Hand,
+                BackgroundImageLayout = ImageLayout.Zoom,
+                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_Minimize)),
+                BackColor = ccTopBar.BackColor,
+                Visible = false
+            };
             ccFormMinimize.Click += CcFormMinimize_Click;
-            ccFormMinimize.Visible = false;
+            ccTopBar.Controls.Add(ccFormMinimize);
 
-            ccFormMaximize = new Panel();
-            ccFormMaximize.Parent = ccTopBar;
-            ccTopBar.Controls.Add(ccFormMaximize);
-            ccFormMaximize.Cursor = Cursors.Hand;
-            ccFormMaximize.BackgroundImageLayout = ImageLayout.Zoom;
-            ccFormMaximize.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_Maximize));
-            ccFormMaximize.BackColor = ccTopBar.BackColor;
+            ccFormMaximize = new Panel()
+            {
+                Parent = ccTopBar,
+                Cursor = Cursors.Hand,
+                BackgroundImageLayout = ImageLayout.Zoom,
+                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_Maximize)),
+                BackColor = ccTopBar.BackColor,
+                Visible = false
+            };
             ccFormMaximize.Click += CcFormMaximize_Click;
-            ccFormMaximize.Visible = false;
+            ccTopBar.Controls.Add(ccFormMaximize);
 
-            ccFormClose = new Panel();
-            ccFormClose.Parent = ccTopBar;
-            ccTopBar.Controls.Add(ccFormClose);
-            ccFormClose.Cursor = Cursors.Hand;
-            ccFormClose.BackgroundImageLayout = ImageLayout.Zoom;
-            ccFormClose.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_CloseBig));
-            ccFormClose.BackColor = ccTopBar.BackColor;
+            ccFormClose = new Panel()
+            {
+                Parent = ccTopBar,
+                Cursor = Cursors.Hand,
+                BackgroundImageLayout = ImageLayout.Zoom,
+                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_CloseBig)),
+                BackColor = ccTopBar.BackColor,
+                Visible = false
+            };
             ccFormClose.Click += CcFormClose_Click;
-            ccFormClose.Visible = false;
+            ccTopBar.Controls.Add(ccFormClose);
 
-            ccDownloadsDirectory = new Panel();
-            ccDownloadsDirectory.Parent = ccTopBar;
-            ccTopBar.Controls.Add(ccDownloadsDirectory);
-            ccDownloadsDirectory.Cursor = Cursors.Hand;
-            ccDownloadsDirectory.BackgroundImageLayout = ImageLayout.Zoom;
-            ccDownloadsDirectory.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory));
-            ccDownloadsDirectory.BackColor = ccTopBar.BackColor;
+            ccDownloadsDirectory = new Panel()
+            {
+                Parent = ccTopBar,
+                Cursor = Cursors.Hand,
+                BackgroundImageLayout = ImageLayout.Zoom,
+                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory)),
+                BackColor = ccTopBar.BackColor,
+                Visible = false
+            };
             ccDownloadsDirectory.Click += CcDownloadsDirectory_Click;
-            ccDownloadsDirectory.Visible = false;
+            ccTopBar.Controls.Add(ccDownloadsDirectory);
 
-            ccHint = new Label();
-            ccHint.Parent = ccTopBar;
+            ccHint = new Label()
+            {
+                Parent = ccTopBar,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel),
+                Text = "ALPHA preview : Paste Youtube links anywhere, really ...",
+                ForeColor = Shared.preferences.colorFontDefault,
+                BackColor = Shared.preferences.colorBackground,
+                Visible = false
+            };
             ccTopBar.Controls.Add(ccHint);
-            ccHint.Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
-            ccHint.Text = "ALPHA preview : Paste Youtube links anywhere, really ...";
-            ccHint.ForeColor = Shared.preferences.colorFontDefault;
-            ccHint.BackColor = Shared.preferences.colorBackground;
-            ccHint.Visible = false;
 
-            ccSettingsButton = new Panel();
-            ccSettingsButton.Parent = ccTopBar;
-            ccTopBar.Controls.Add(ccSettingsButton);
-            ccSettingsButton.Cursor = Cursors.Hand;
-            ccSettingsButton.BackgroundImageLayout = ImageLayout.Zoom;
-            ccSettingsButton.BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Settings));
-            ccSettingsButton.BackColor = ccTopBar.BackColor;
+            ccSettingsButton = new Panel()
+            {
+                Parent = ccTopBar,
+                Cursor = Cursors.Hand,
+                BackgroundImageLayout = ImageLayout.Zoom,
+                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Settings)),
+                BackColor = ccTopBar.BackColor,
+                Visible = true
+            };
             ccSettingsButton.Click += CcSettings_Click;
-            ccSettingsButton.Visible = true;
+            ccTopBar.Controls.Add(ccSettingsButton);
 
             // Status Bar
-            ccStatusBar = new Panel();
-            ccStatusBar.Parent = ccDownloadsContainer;
-            ccDownloadsContainer.Controls.Add(ccStatusBar);
-            ccStatusBar.BackColor = Shared.preferences.colorBackground;
+            ccStatusBar = new Panel()
+            {
+                Parent = ccDownloadsContainer,
+                BackColor = Shared.preferences.colorBackground
+            };
             ccStatusBar.BringToFront();
+            ccDownloadsContainer.Controls.Add(ccStatusBar);
 
             // Instructions
-            ccPanelInstructions = new Panel();
-            ccPanelInstructions.Parent = ccDownloadsContainer;
-            ccDownloadsContainer.Controls.Add(ccPanelInstructions);
-            ccPanelInstructions.BackColor = Shared.preferences.colorBackground;
+            ccPanelInstructions = new Panel()
+            {
+                Parent = ccDownloadsContainer,
+                BackColor = Shared.preferences.colorBackground
+            };
             ccPanelInstructions.BringToFront();
-            if(noPreferencesFound)
+            ccDownloadsContainer.Controls.Add(ccPanelInstructions);
+            if (noPreferencesFound)
             {
                 ccPanelInstructions.Visible = false;
             }
 
-            ccTextInstructions = new RichTextBox();
-            ccTextInstructions.Parent = ccPanelInstructions;
-            ccPanelInstructions.Controls.Add(ccTextInstructions);
-            ccTextInstructions.BackColor = Shared.preferences.colorBackground;
-            ccTextInstructions.ForeColor = Shared.preferences.colorFontDefault;
-            ccTextInstructions.ReadOnly = true;
-            ccTextInstructions.BorderStyle = BorderStyle.None;
+            ccTextInstructions = new RichTextBox()
+            {
+                Parent = ccPanelInstructions,
+                BackColor = Shared.preferences.colorBackground,
+                ForeColor = Shared.preferences.colorFontDefault,
+                ReadOnly = true,
+                BorderStyle = BorderStyle.None,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = Shared.instructions
+            };
             ccTextInstructions.LinkClicked += CcTextInstructions_LinkClicked;
-            ccTextInstructions.Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel);
-            ccTextInstructions.Text = Shared.instructions;
+            ccPanelInstructions.Controls.Add(ccTextInstructions);
 
 
-            ccDownloadsText = new Label();
-            ccDownloadsText.Parent = ccStatusBar;
+            ccDownloadsText = new Label()
+            {
+                Parent = ccStatusBar,
+                BackColor = ccStatusBar.BackColor,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel),
+                Text = "Downloads:",
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoSize = true
+            };
             ccStatusBar.Controls.Add(ccDownloadsText);
-            ccDownloadsText.BackColor = ccStatusBar.BackColor;
-            ccDownloadsText.ForeColor = Shared.preferences.colorFontDefault;
-            ccDownloadsText.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
-            ccDownloadsText.Text = "Downloads:";
-            ccDownloadsText.TextAlign = ContentAlignment.MiddleLeft;
-            ccDownloadsText.AutoSize = true;
 
-            ccDownloadsValue = new Label();
-            ccDownloadsValue.Parent = ccStatusBar;
-            ccStatusBar.Controls.Add(ccDownloadsValue);
-            ccDownloadsValue.BackColor = ccStatusBar.BackColor;
-            ccDownloadsValue.ForeColor = Shared.preferences.colorAccent2;
-            ccDownloadsValue.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
-            ccDownloadsValue.Text = "0 / 0";
-            ccDownloadsValue.TextAlign = ContentAlignment.MiddleLeft;
-            ccDownloadsValue.AutoSize = true;
+            ccDownloadsValue = new Label()
+            {
+                Parent = ccStatusBar,
+                BackColor = ccStatusBar.BackColor,
+                ForeColor = Shared.preferences.colorAccent2,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel),
+                Text = "0 / 0",
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoSize = true,
+                Cursor = Cursors.Hand
+            };
             ccDownloadsValue.MouseClick += CcDownloadsValue_MouseClick;
             ccDownloadsValue.MouseDoubleClick += CcDownloadsValue_MouseDoubleClick;
-            ccDownloadsValue.Cursor = Cursors.Hand;
+            ccStatusBar.Controls.Add(ccDownloadsValue);
 
-            ccActiveDownloadsText = new Label();
-            ccActiveDownloadsText.Parent = ccStatusBar;
+            ccActiveDownloadsText = new Label()
+            {
+                Parent = ccStatusBar,
+                BackColor = ccStatusBar.BackColor,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel),
+                Text = "Active downloads:",
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoSize = true
+            };
             ccStatusBar.Controls.Add(ccActiveDownloadsText);
-            ccActiveDownloadsText.BackColor = ccStatusBar.BackColor;
-            ccActiveDownloadsText.ForeColor = Shared.preferences.colorFontDefault;
-            ccActiveDownloadsText.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
-            ccActiveDownloadsText.Text = "Active downloads:";
-            ccActiveDownloadsText.TextAlign = ContentAlignment.MiddleLeft;
-            ccActiveDownloadsText.AutoSize = true;
 
-            ccActiveDownloadsValue = new Label();
-            ccActiveDownloadsValue.Parent = ccStatusBar;
-            ccStatusBar.Controls.Add(ccActiveDownloadsValue);
-            ccActiveDownloadsValue.BackColor = ccStatusBar.BackColor;
-            ccActiveDownloadsValue.ForeColor = Shared.preferences.colorAccent2;
-            ccActiveDownloadsValue.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
-            ccActiveDownloadsValue.Text = "0 / 0";
-            ccActiveDownloadsValue.TextAlign = ContentAlignment.MiddleLeft;
-            ccActiveDownloadsValue.AutoSize = true;
+            ccActiveDownloadsValue = new Label()
+            {
+                Parent = ccStatusBar,
+                BackColor = ccStatusBar.BackColor,
+                ForeColor = Shared.preferences.colorAccent2,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel),
+                Text = "0 / 0",
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoSize = true,
+                Cursor = Cursors.Hand
+            };
             ccActiveDownloadsValue.MouseClick += ccActiveDownloadsValue_MouseClick;
             ccActiveDownloadsValue.MouseDoubleClick += ccActiveDownloadsValue_MouseDoubleClick;
-            ccActiveDownloadsValue.Cursor = Cursors.Hand;
+            ccStatusBar.Controls.Add(ccActiveDownloadsValue);
 
-            ccCanConvertText = new Label();
-            ccCanConvertText.Parent = ccStatusBar;
+            ccCanConvertText = new Label()
+            {
+                Parent = ccStatusBar,
+                BackColor = ccStatusBar.BackColor,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel),
+                Text = "Convert to .mp3",
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoSize = true
+            };
             ccStatusBar.Controls.Add(ccCanConvertText);
-            ccCanConvertText.BackColor = ccStatusBar.BackColor;
-            ccCanConvertText.ForeColor = Shared.preferences.colorFontDefault;
-            ccCanConvertText.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
-            ccCanConvertText.Text = "Convert to .mp3";
-            ccCanConvertText.TextAlign = ContentAlignment.MiddleLeft;
-            ccCanConvertText.AutoSize = true;
 
-            ccCanConvert = new CcToggle();
-            ccCanConvert.Parent = ccStatusBar;
-            ccStatusBar.Controls.Add(ccCanConvert);
-            ccCanConvert.isON = Shared.preferences.canConvert;
-            ccCanConvert.BackColor = Shared.preferences.colorBackground;
-            ccCanConvert.ForeColor = Shared.preferences.colorFontDefault;
-            ccCanConvert.colorON = Shared.preferences.colorAccent2;
-            ccCanConvert.colorOFF = Shared.preferences.colorAccent3;
+            ccCanConvert = new CcToggle()
+            {
+                Parent = ccStatusBar,
+                isON = Shared.preferences.canConvert,
+                BackColor = Shared.preferences.colorBackground,
+                ForeColor = Shared.preferences.colorFontDefault,
+                colorON = Shared.preferences.colorAccent2,
+                colorOFF = Shared.preferences.colorAccent3
+            };
             ccCanConvert.Click += CcCanConvert_Click;
+            ccStatusBar.Controls.Add(ccCanConvert);
 
-            ccVideoQuality = new Label();
-            ccVideoQuality.Parent = ccTopBar;
-            ccTopBar.Controls.Add(ccVideoQuality);
-            ccVideoQuality.BackColor = ccTopBar.BackColor;
-            ccVideoQuality.ForeColor = Shared.preferences.colorAccent2; // colorAccent4/7
-            ccVideoQuality.Cursor = Cursors.Hand;
-            ccVideoQuality.Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
+            ccVideoQuality = new Label()
+            {
+                Parent = ccTopBar,
+                BackColor = ccTopBar.BackColor,
+                ForeColor = Shared.preferences.colorAccent2, // colorAccent4/7
+                Cursor = Cursors.Hand,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel),
+                AutoSize = true
+            };
             ccVideoQuality.MouseClick += CcVideoQuality_MouseClick;
             ccVideoQuality.MouseDoubleClick += CcVideoQuality_MouseDoubleClick;
-            ccVideoQuality.AutoSize = true;
+            ccTopBar.Controls.Add(ccVideoQuality);
             updateCcVideoQualityText();
 
             // Resource Downloader (debug oriented)
-            ccResourceDownloaderLog = new RichTextBox();
-            ccResourceDownloaderLog.Parent = ccDownloadsContainer;
-            ccDownloadsContainer.Controls.Add(ccResourceDownloaderLog);
-            ccResourceDownloaderLog.BorderStyle = BorderStyle.None;
-            ccResourceDownloaderLog.Dock = DockStyle.Fill;
-            ccResourceDownloaderLog.BackColor = Shared.preferences.colorBackground;
-            ccResourceDownloaderLog.ForeColor = Shared.preferences.colorFontDefault;
-            ccResourceDownloaderLog.Font = new Font(Shared.preferences.fontDefault.FontFamily, 16, GraphicsUnit.Pixel);
-            ccResourceDownloaderLog.ReadOnly = true;
+            ccResourceDownloaderLog = new RichTextBox()
+            {
+                Parent = ccDownloadsContainer,
+                BorderStyle = BorderStyle.None,
+                Dock = DockStyle.Fill,
+                BackColor = Shared.preferences.colorBackground,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 16, GraphicsUnit.Pixel),
+                ReadOnly = true
+            };
             ccResourceDownloaderLog.KeyDown += CcResourceDownloaderLog_KeyDown;
             ccResourceDownloaderLog.LinkClicked += CcResourceDownloaderLog_LinkClicked;
-            if(resourcesMissingCount == 0)
+            ccDownloadsContainer.Controls.Add(ccResourceDownloaderLog);
+            if (resourcesMissingCount == 0)
             {
                 ccResourceDownloaderLog.Visible = false;
             }

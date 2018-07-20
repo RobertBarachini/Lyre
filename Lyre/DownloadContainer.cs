@@ -270,71 +270,87 @@ class DownloadContainer : Panel
         processOutput = new StringBuilder();
         progress = 0;
 
-        this.DoubleBuffered = true;
-        this.BackColor = Shared.preferences.colorBackground;
-        this.Font = Shared.preferences.fontDefault;
+        DoubleBuffered = true;
+        BackColor = Shared.preferences.colorBackground;
+        Font = Shared.preferences.fontDefault;
 
-        thumbnail = new PictureBox();
-        thumbnail.Parent = this;
-        this.Controls.Add(thumbnail);
-        thumbnail.BackColor = Shared.preferences.colorBackground;
-        thumbnail.SizeMode = PictureBoxSizeMode.StretchImage; // Zoom should be used - change thumbnail.Left
-        thumbnail.Image = getImageFrame();//getImage("squareAnimation256.gif");
-        thumbnail.Cursor = Cursors.Hand;
+        thumbnail = new PictureBox()
+        {
+            Parent = this,
+            BackColor = Shared.preferences.colorBackground,
+            SizeMode = PictureBoxSizeMode.StretchImage, // Zoom should be used - change thumbnail.Left
+            Image = getImageFrame(),//getImage("squareAnimation256.gif");
+            Cursor = Cursors.Hand
+        };
         thumbnail.Click += Thumbnail_Click;
+        Controls.Add(thumbnail);
 
-        title = new Label();
-        title.Parent = this;
-        this.Controls.Add(title);
-        title.Font = Shared.preferences.fontDefault;
-        title.Text = "Queued for download ...";
-        title.ForeColor = Shared.preferences.colorFontDefault;
-        title.TextAlign = ContentAlignment.TopLeft;
+        title = new Label()
+        {
+            Parent = this,
+            Font = Shared.preferences.fontDefault,
+            Text = "Queued for download ...",
+            ForeColor = Shared.preferences.colorFontDefault,
+            TextAlign = ContentAlignment.TopLeft
+        };
         title.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
+        Controls.Add(title);
 
-        progressBar = new Panel();
-        progressBar.Parent = this;
-        this.Controls.Add(progressBar);
-        progressBar.BackColor = Shared.preferences.colorAccent1;
+        progressBar = new Panel()
+        {
+            Parent = this,
+            BackColor = Shared.preferences.colorAccent1
+        };
+        Controls.Add(progressBar);
 
-        progressLabel = new Label();
-        progressLabel.Parent = progressBar;
-        progressBar.Controls.Add(progressLabel);
-        progressLabel.Dock = DockStyle.Fill;
-        progressLabel.ForeColor = Shared.preferences.colorFontDefault;
-        progressLabel.BackColor = Shared.preferences.colorAccent1;
-        progressLabel.TextAlign = ContentAlignment.MiddleCenter;
-        progressLabel.Text = "";
-        progressLabel.Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel);
+        progressLabel = new Label()
+        {
+            Parent = progressBar,
+            Dock = DockStyle.Fill,
+            ForeColor = Shared.preferences.colorFontDefault,
+            BackColor = Shared.preferences.colorAccent1,
+            TextAlign = ContentAlignment.MiddleCenter,
+            Text = "",
+            Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel)
+        };
         progressLabel.Click += ProgressLabel_Click;
+        progressBar.Controls.Add(progressLabel);
 
-        outputLog = new RichTextBox();
-        outputLog.Parent = this;
-        this.Controls.Add(outputLog);
-        outputLog.BorderStyle = BorderStyle.None;
-        outputLog.BackColor = Shared.preferences.colorForeground;
-        outputLog.ForeColor = Shared.preferences.colorFontDefault;
-        outputLog.Font = new Font(Shared.preferences.fontDefault.FontFamily, 14, GraphicsUnit.Pixel);
+        outputLog = new RichTextBox()
+        {
+            Parent = this,
+            BorderStyle = BorderStyle.None,
+            BackColor = Shared.preferences.colorForeground,
+            ForeColor = Shared.preferences.colorFontDefault,
+            Font = new Font(Shared.preferences.fontDefault.FontFamily, 14, GraphicsUnit.Pixel)
+        };
+        Controls.Add(outputLog);
 
-        cancelButton = new Panel();
-        cancelButton.Parent = this;
-        this.Controls.Add(cancelButton);
-        cancelButton.BackColor = Shared.preferences.colorAccent2;
-        cancelButton.Cursor = Cursors.Hand;
-        cancelButton.Click += CancelButton_Click;
+        cancelButton = new Panel()
+        {
+            Parent = this,
+            BackColor = Shared.preferences.colorAccent2,
+            Cursor = Cursors.Hand
+        };
         //cancelButton.BackgroundImage = getImage("squareAnimation64.gif");
+        cancelButton.Click += CancelButton_Click;
+        Controls.Add(cancelButton);
 
         updateProgress(0);
         resize();
-
         previousProgress = progress;
-        animateProgress = new System.Windows.Forms.Timer();
-        animateProgress.Interval = 50;
+
+        animateProgress = new System.Windows.Forms.Timer()
+        {
+            Interval = 50
+        };
         animateProgress.Tick += AnimateProgress_Tick;
         animateProgress.Start();
 
-        animateGeneral = new System.Windows.Forms.Timer();
-        animateGeneral.Interval = 50;
+        animateGeneral = new System.Windows.Forms.Timer()
+        {
+            Interval = 50
+        };
         animateGeneral.Tick += AnimateGeneral_Tick;
         if (Shared.preferences.enableThumbnailAnimations)
         {
@@ -954,13 +970,16 @@ class DownloadContainer : Panel
         }
         catch (Exception ex) { }
 
-        HistoryItem hi = new HistoryItem();
         //EXAMPLE : Path.GetFullPath((new Uri(absolute_path)).LocalPath);
-        hi.path_output = Path.GetFullPath(Path.Combine(destinationDirectory, outputFileName + extension));
-        hi.path_thumbnail = Path.GetFullPath(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension));
-        hi.title = infoJSON.GetValue("fulltitle").ToString();
-        hi.url = infoJSON.GetValue("webpage_url").ToString();
-        hi.time_created_UTC = DateTime.UtcNow;
+        HistoryItem hi = new HistoryItem()
+        {
+            path_output = Path.GetFullPath(Path.Combine(destinationDirectory, outputFileName + extension)),
+            path_thumbnail = Path.GetFullPath(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension)),
+            title = infoJSON.GetValue("fulltitle").ToString(),
+            url = infoJSON.GetValue("webpage_url").ToString(),
+            time_created_UTC = DateTime.UtcNow
+        };
+
         lock (Shared.lockHistory)
         {
             Shared.history.AddFirst(hi);
