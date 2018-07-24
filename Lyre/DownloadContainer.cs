@@ -245,20 +245,6 @@ class DownloadContainer : Panel
         }
     }
 
-    private string getVideoID(string url)
-    {
-        int index = url.IndexOf("watch?v=");
-        if (index < 0)
-        {
-            return null;
-        }
-        else
-        {
-            url = url.Substring(index + "watch?v=".Length);
-            return url;
-        }
-    }
-
     private void initComp()
     {
         instanceRemoved = false;
@@ -435,8 +421,6 @@ class DownloadContainer : Panel
 
     private void retryDownload()
     {
-        
-
         progress = 0;
         updateProgress(0);
         success = false;
@@ -463,7 +447,7 @@ class DownloadContainer : Panel
 
     public void download(string url, string destinationDirectory, bool canConvert)
     {
-        this.videoID = getVideoID(url);
+        this.videoID = SharedFunctions.getVideoID(url);
         string path = Path.Combine(Shared.preferences.tempDirectoy, videoID + ".info.json");
 
 
@@ -474,7 +458,7 @@ class DownloadContainer : Panel
         {
             infoJSON = JObject.Parse(System.IO.File.ReadAllText(path));
             string outputFilename = "";
-            outputFilename = getValidFileName(infoJSON.GetValue("fulltitle").ToString());
+            outputFilename = SharedFunctions.getValidFileName(infoJSON.GetValue("fulltitle").ToString());
             if(System.IO.File.Exists(Path.Combine(Shared.preferences.downloadsDirectory, outputFilename + ".mp3")))
             {
                 outputFileExists = true;
@@ -497,17 +481,17 @@ class DownloadContainer : Panel
                 this.title.Text = infoJSON.GetValue("fulltitle").ToString();
             });
             string fileURL = infoJSON["thumbnails"].First["url"].ToString();
-            imageExtension = getExtension(fileURL);
+            imageExtension = SharedFunctions.getExtension(fileURL);
             string filename = infoJSON.GetValue("display_id").ToString();
             this.thumbnail.Invoke((MethodInvoker)delegate
             {
-                thumbnail.Image = getImage(Path.Combine(Shared.preferences.tempDirectoy, filename + imageExtension));
+                thumbnail.Image = SharedFunctions.getImage(Path.Combine(Shared.preferences.tempDirectoy, filename + imageExtension));
             });
         }
         else
         {
             // only add to downloads if the videoID is unique = don't download twice
-            if (isUniqueDownloadsID(getVideoID(url), canConvert))
+            if (isUniqueDownloadsID(SharedFunctions.getVideoID(url), canConvert))
             {
                 try
                 {
@@ -544,7 +528,7 @@ class DownloadContainer : Panel
         {
             Directory.CreateDirectory(destinationDirectory);
         }
-        this.videoID = getVideoID(url);
+        this.videoID = SharedFunctions.getVideoID(url);
         string arguments = "";
 
         singleDownload = new Process();
@@ -620,10 +604,10 @@ class DownloadContainer : Panel
             else if (data.Contains("Writing thumbnail to: "))
             {
                 string fileURL = infoJSON["thumbnails"].First["url"].ToString();
-                imageExtension = getExtension(fileURL);
+                imageExtension = SharedFunctions.getExtension(fileURL);
                 this.thumbnail.Invoke((MethodInvoker)delegate
                 {
-                    thumbnail.Image = getImage(Path.Combine(Shared.preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
+                    thumbnail.Image = SharedFunctions.getImage(Path.Combine(Shared.preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
                 });
             }
             else if(data.Contains("[ffmpeg] Destination: "))
@@ -933,7 +917,7 @@ class DownloadContainer : Panel
         }
 
         string outputFileName = infoJSON.GetValue("fulltitle").ToString();
-        outputFileName = getValidFileName(outputFileName);
+        outputFileName = SharedFunctions.getValidFileName(outputFileName);
         status = Status.WritingOutput;
 
         string extension = "";
@@ -997,21 +981,6 @@ class DownloadContainer : Panel
 
         System.IO.File.WriteAllText(Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".txt", processOutput.ToString());
         status = Status.Done;
-    }
-
-    private string getValidFileName(string filename)
-    {
-        // Illegal chars : \/:*?"<>|
-        return filename.
-            Replace("\\", "＼").
-            Replace("/", "⁄").
-            Replace(":", "˸").
-            Replace("*", "⁎").
-            Replace("?", "？").
-            Replace("\"", "ʺ").
-            Replace("<", "˂").
-            Replace(">", "˃").
-            Replace("|", "ǀ");
     }
 
     private void CancelButton_Click(object sender, EventArgs e)
@@ -1084,19 +1053,6 @@ class DownloadContainer : Panel
         this.Dispose();
     }
 
-    private string getExtension(string input)
-    {
-        int index = input.LastIndexOf(".");
-        if (index < 0)
-        {
-            return null;
-        }
-        else
-        {
-            return input.Substring(index);
-        }
-    }
-
     // poglej ali je kreiran JSON in potem ali so ustvarjene ustrezne datoteke
     // kasneje naredi funkcije ki nastavljajo title/thumbnail in v tem primeru ce
     // video ze obstaja v tempu nastavi vrednosti UI-ja in ustrezno zakljuci process/thread
@@ -1135,30 +1091,6 @@ class DownloadContainer : Panel
             }
         }
         return im;
-    }
-
-    private static Image getImage(string path)
-    {
-        int counter = 0;
-        while (System.IO.File.Exists(path) == false)
-        {
-            Application.DoEvents();
-            Thread.Sleep(50);
-            counter += 50;
-            if (counter > 1000)
-            {
-                break;
-            }
-        }
-        try
-        {
-            Image img = Image.FromStream(new MemoryStream(System.IO.File.ReadAllBytes(path)));
-            return img;
-        }
-        catch (Exception ex)
-        {
-            return null;
-        }
     }
 
     private void resize()

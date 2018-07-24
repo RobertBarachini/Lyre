@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using Newtonsoft.Json;
 
-public class Shared
+public class Shared // Common functions, variables for Lyre downloader project
 {
     // Main form
     public static Lyre.Form1 mainForm;
@@ -97,6 +97,17 @@ public class Shared
                 preferences.maxVideoQualitySelector = 8;
             }
         }
+    }
+
+    public static int getUnfinishedDownloadsCount()
+    {
+        int downloadsActive = DownloadContainer.getActiveProcessesCount();
+        int downloadsInQueue = DownloadContainer.getDownloadsQueueCount();
+        int downloadsInPreQueue = mainForm.getDownloadsPreQueueCount();
+
+        int downloadsUnfinished = downloadsActive + downloadsInQueue + downloadsInPreQueue;
+
+        return downloadsUnfinished;
     }
 
     public static string instructions = @"General directions

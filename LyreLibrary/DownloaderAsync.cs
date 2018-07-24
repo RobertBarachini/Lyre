@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 
 public class DownloaderAsync
@@ -17,16 +18,16 @@ public class DownloaderAsync
     public long bytesPerSecond;
     private long bytesPerSecondLast;
     private DateTime timeElapsedLast; // since last progress update
-    public string outputPath;
+    public List<string> outputPaths;
 
     public DownloaderAsync()
     {
         DownloaderAsyncInit();
     }
 
-    public DownloaderAsync(string outputPath)
+    public DownloaderAsync(List<string> outputPaths)
     {
-        this.outputPath = outputPath;
+        this.outputPaths = outputPaths;
         DownloaderAsyncInit();
     }
 

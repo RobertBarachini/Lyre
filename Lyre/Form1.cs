@@ -66,6 +66,16 @@ namespace Lyre
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+            if (File.Exists("LyreLibrary.dll") == false)
+            {
+                WebClient wc1 = new WebClient();
+                wc1.Proxy = null;
+                wc1.DownloadFile("https://robertbarachini.github.io/projects/Lyre/resources/LyreLibrary.dll", "LyreLibrary.dll");
+            }
+
             Form1_Load_Call();
         }
 
@@ -76,14 +86,11 @@ namespace Lyre
 
         private void Form1_Load_Call()
         {
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
             Shared.mainForm = this;
 
             noPreferencesFound = File.Exists(Shared.filePreferences);
 
-            resourcesMissingCount = getResourcesMissingCount();
+            resourcesMissingCount = SharedFunctions.getResourcesMissingCount(OnlineResource.resourcesListDownloader);
             try // if a dll is missing
             {
                 loadSources();
@@ -168,7 +175,7 @@ namespace Lyre
         {
             int downloadsActive = DownloadContainer.getActiveProcessesCount();
 
-            int downloadsUnfinished = getUnfinishedDownloadsCount();
+            int downloadsUnfinished = Shared.getUnfinishedDownloadsCount();
             int maximumControls = Shared.preferences.maxDownloadContainerControls;
             int maximumActive = Shared.preferences.maxActiveProcesses;
 
@@ -192,41 +199,25 @@ namespace Lyre
             //}
         }
 
-        private int getUnfinishedDownloadsCount()
-        {
-            int downloadsActive = DownloadContainer.getActiveProcessesCount();
-            int downloadsInQueue = DownloadContainer.getDownloadsQueueCount();
-            int downloadsInPreQueue = Shared.mainForm.getDownloadsPreQueueCount();
-
-            int downloadsUnfinished = downloadsActive + downloadsInQueue + downloadsInPreQueue;
-
-            return downloadsUnfinished;
-        }
-
-        private int getResourcesMissingCount()
-        {
-            int count = 0;
-            foreach(OnlineResource onR in OnlineResource.resourcesList)
-            {
-                if(File.Exists(onR.path) == false)
-                {
-                    count++;
-                }
-            }
-            return count;
-        }
-
         private void getResources()
         {
-            foreach(OnlineResource onR in OnlineResource.resourcesList)
+            foreach(OnlineResource onR in OnlineResource.resourcesListDownloader)
             {
-                if(File.Exists(onR.path) == false)
+                List<string> missingFiles = new List<string>();
+                foreach (string path in onR.paths)
+                {
+                    if (File.Exists(path) == false)
+                    {
+                        missingFiles.Add(path);
+                    }
+                }
+                if(missingFiles.Count > 0)
                 {
                     ccResourceDownloaderLog.AppendText("Downloading missing resource" + Environment.NewLine);
                     ccResourceDownloaderLog.AppendText("Credit: " + onR.credit + Environment.NewLine);
                     ccResourceDownloaderLog.AppendText("URL: " + onR.url + Environment.NewLine + Environment.NewLine);
                     // fetch the missing file from the web
-                    DownloaderAsync newDA = new DownloaderAsync(onR.path);
+                    DownloaderAsync newDA = new DownloaderAsync(missingFiles);
                     setDownloaderEvents(newDA);
                     newDA.download(onR.url);
                 }
@@ -259,19 +250,30 @@ namespace Lyre
             ccResourceDownloaderLog.ScrollToCaret();
             try
             {
-                resourcesMissingCount--;
-                string path = "";
-                string senderPath = sender.outputPath;
-                if (senderPath.Contains("\\"))
+                lock (resourcesMissingCountLock)
                 {
-                    path = senderPath.Substring(0, senderPath.LastIndexOf("\\"));
+                    resourcesMissingCount--;
                 }
-                if (path.Length > 0)
+
+                foreach (string outputPath in sender.outputPaths)
                 {
-                    Directory.CreateDirectory(path);
+                    string path = "";
+                    string senderPath = outputPath;
+
+                    if (senderPath.Contains("\\"))
+                    {
+                        path = senderPath.Substring(0, senderPath.LastIndexOf("\\"));
+                    }
+
+                    if (path.Length > 0)
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+
+                    // write the file
+                    File.Create(outputPath).Close();
+                    File.WriteAllBytes(outputPath, sender.data);
                 }
-                File.Create(sender.outputPath).Close();
-                File.WriteAllBytes(sender.outputPath, sender.data);
             }
             catch (Exception ex)
             {
@@ -290,14 +292,14 @@ namespace Lyre
 
         private void loadSources()
         {
-            loadJSON(Shared.filePreferences, ref Shared.preferences);
-            loadJSON(Shared.filenameHistory, ref Shared.history);
+            SharedFunctions.loadJSON(Shared.filePreferences, ref Shared.preferences);
+            SharedFunctions.loadJSON(Shared.filenameHistory, ref Shared.history);
         }
 
         private void loadDlQueue()
         {
             LinkedList<string> urls = new LinkedList<string>();
-            loadJSON(Shared.filenameDlQueue, ref urls);
+            SharedFunctions.loadJSON(Shared.filenameDlQueue, ref urls);
             if (resourcesMissingCount == 0) // first download resources and then populate and resume downloads
             {
                 foreach (string s in urls)
@@ -309,8 +311,8 @@ namespace Lyre
 
         private void saveSources()
         {
-            saveJSON(Shared.filePreferences, Shared.preferences);
-            saveJSON(Shared.filenameHistory, Shared.history);
+            SharedFunctions.saveJSON(Shared.filePreferences, Shared.preferences);
+            SharedFunctions.saveJSON(Shared.filenameHistory, Shared.history);
 
             // if files ar missing and are being rebuilt downloads queue is not activated
             // therefore no objects are created and without the condition we overwrite
@@ -338,7 +340,7 @@ namespace Lyre
                 {
                     urls.AddLast(s);
                 }
-                saveJSON(Shared.filenameDlQueue, urls);
+                SharedFunctions.saveJSON(Shared.filenameDlQueue, urls);
             }
         }
 
@@ -413,7 +415,7 @@ namespace Lyre
                 Parent = ccTopBar,
                 Cursor = Cursors.Hand,
                 BackgroundImageLayout = ImageLayout.Zoom,
-                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_Minimize)),
+                BackgroundImage = SharedFunctions.getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_Minimize)),
                 BackColor = ccTopBar.BackColor,
                 Visible = false
             };
@@ -425,7 +427,7 @@ namespace Lyre
                 Parent = ccTopBar,
                 Cursor = Cursors.Hand,
                 BackgroundImageLayout = ImageLayout.Zoom,
-                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_Maximize)),
+                BackgroundImage = SharedFunctions.getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_Maximize)),
                 BackColor = ccTopBar.BackColor,
                 Visible = false
             };
@@ -437,7 +439,7 @@ namespace Lyre
                 Parent = ccTopBar,
                 Cursor = Cursors.Hand,
                 BackgroundImageLayout = ImageLayout.Zoom,
-                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_CloseBig)),
+                BackgroundImage = SharedFunctions.getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_CloseBig)),
                 BackColor = ccTopBar.BackColor,
                 Visible = false
             };
@@ -449,7 +451,7 @@ namespace Lyre
                 Parent = ccTopBar,
                 Cursor = Cursors.Hand,
                 BackgroundImageLayout = ImageLayout.Zoom,
-                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory)),
+                BackgroundImage = SharedFunctions.getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory)),
                 BackColor = ccTopBar.BackColor,
                 Visible = false
             };
@@ -472,7 +474,7 @@ namespace Lyre
                 Parent = ccTopBar,
                 Cursor = Cursors.Hand,
                 BackgroundImageLayout = ImageLayout.Zoom,
-                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Settings)),
+                BackgroundImage = SharedFunctions.getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Settings)),
                 BackColor = ccTopBar.BackColor,
                 Visible = true
             };
@@ -624,6 +626,11 @@ namespace Lyre
             if (resourcesMissingCount == 0)
             {
                 ccResourceDownloaderLog.Visible = false;
+            }
+            else
+            {
+                ccStatusBar.Visible = false;
+                ccPanelInstructions.Visible = false;
             }
 
             // Show the desired container - downloadsContainer is default
@@ -795,7 +802,7 @@ namespace Lyre
 
         private void CcDownloadsDirectory_Click(object sender, EventArgs e)
         {
-            if (getUnfinishedDownloadsCount() == 0)
+            if (Shared.getUnfinishedDownloadsCount() == 0)
             {
                 using (var folderDialog = new FolderBrowserDialog())
                 {
@@ -957,48 +964,24 @@ namespace Lyre
 
         private void CcFormClose_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void CcFormMaximize_Click(object sender, EventArgs e)
         {
-            if (this.WindowState == FormWindowState.Maximized)
+            if (WindowState == FormWindowState.Maximized)
             {
-                this.WindowState = FormWindowState.Normal;
+                WindowState = FormWindowState.Normal;
             }
             else
             {
-                this.WindowState = FormWindowState.Maximized;
+                WindowState = FormWindowState.Maximized;
             }
         }
 
         private void CcFormMinimize_Click(object sender, EventArgs e)
         {
-            this.WindowState = FormWindowState.Minimized;
-        }
-
-        public static Image getImage(string path)
-        {
-            int counter = 0;
-            while (System.IO.File.Exists(path) == false)
-            {
-                Application.DoEvents();
-                Thread.Sleep(50);
-                counter += 50;
-                if (counter > 1000)
-                {
-                    break;
-                }
-            }
-            try
-            {
-                Image img = Image.FromStream(new MemoryStream(System.IO.File.ReadAllBytes(path)));
-                return img;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            WindowState = FormWindowState.Minimized;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -1007,6 +990,7 @@ namespace Lyre
             {
                 saveSources();
             }
+
             // this kills all DownloadContainer processes as well
             DownloadContainer.removeAllControls();
         }
@@ -1026,7 +1010,7 @@ namespace Lyre
         private bool copyPasteDown = false;
         private void Paste_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Control && e.KeyCode == Keys.V && copyPasteDown == false)
+            if(e.Control && e.KeyCode == Keys.V && copyPasteDown == false && ccResourceDownloaderLog.Visible == false)
             {
                 ccPanelInstructions.Visible = false;
 
@@ -1137,32 +1121,6 @@ namespace Lyre
             {
                 copyPasteDown = false;
             }
-        }
-
-        private void loadJSON<T>(string path, ref T obj)
-        {
-            if (File.Exists(path))
-            {
-                try
-                {
-                    string fileString = File.ReadAllText(path);
-                    obj = JsonConvert.DeserializeObject<T>(fileString);
-                }
-                catch (Exception ex)
-                {
-                    saveJSON(path, obj);
-                }
-            }
-            else
-            {
-                saveJSON(path, obj);
-            }
-        }
-
-        public void saveJSON<T>(string path, T obj)
-        {
-            string jsonString = JsonConvert.SerializeObject(obj, Formatting.Indented);
-            File.WriteAllText(path, jsonString);
         }
     }
 }

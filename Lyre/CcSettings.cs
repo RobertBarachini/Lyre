@@ -3,7 +3,7 @@
 using System.Windows.Forms;
 using System.Drawing;
 using System.IO;
-using System.Threading;
+using System.Diagnostics;
 
 // This bit of code looks like a complete overkill but the end result looks pretty.
 
@@ -12,7 +12,7 @@ namespace Lyre
     class CcSettings : Panel
     {
         private ColorDialog ccPicker;
-        private System.Windows.Forms.Timer timerStatusUpdater;
+        private Timer timerStatusUpdater;
 
         private Label ccLabelSettins;
         private Panel ccBottomMargin;
@@ -63,6 +63,9 @@ namespace Lyre
         private RichTextBox ccTextFolderTemp;
         private Panel ccButtonFolderTemp;
 
+        // Update
+        private Label ccLabelUpdate;
+
         public CcSettings()
         {
             this.DoubleBuffered = true;
@@ -80,7 +83,7 @@ namespace Lyre
             InitComponents();
             resizeComponents();
 
-            timerStatusUpdater = new System.Windows.Forms.Timer()
+            timerStatusUpdater = new Timer()
             {
                 Interval = 1000
             };
@@ -92,7 +95,7 @@ namespace Lyre
         {
             // Some settings should not be changed during the download process
             // Bug - changing a cursor for a specific control changes it globally
-            if (getUnfinishedDownloadsCount() == 0)
+            if (Shared.getUnfinishedDownloadsCount() == 0)
             {
                 //if (ccButtonFolderDownloads.Cursor != Cursors.Hand)
                 //{
@@ -176,7 +179,7 @@ namespace Lyre
                 BackColor = Shared.preferences.colorFontDefault,
                 Cursor = Cursors.Hand
             };
-            ccPanelColorFont.Click += CcPanelColorFont_Click;
+            ccPanelColorFont.Click += CCPanelColorX_Click;
             ccContainerColors.Controls.Add(ccPanelColorFont);
 
 
@@ -196,7 +199,7 @@ namespace Lyre
                 BackColor = Shared.preferences.colorForeground,
                 Cursor = Cursors.Hand
             };
-            ccPanelColorForeground.Click += CcPanelColorForeground_Click;
+            ccPanelColorForeground.Click += CCPanelColorX_Click;
             ccContainerColors.Controls.Add(ccPanelColorForeground);
 
 
@@ -217,7 +220,7 @@ namespace Lyre
                 Cursor = Cursors.Hand,
                 BorderStyle = BorderStyle.FixedSingle
             };
-            ccPanelColorBackground.Click += CcPanelColorBackground_Click;
+            ccPanelColorBackground.Click += CCPanelColorX_Click;
             ccContainerColors.Controls.Add(ccPanelColorBackground);
 
 
@@ -237,7 +240,7 @@ namespace Lyre
                 BackColor = Shared.preferences.colorAccent1,
                 Cursor = Cursors.Hand
             };
-            ccPanelColorAccent1.Click += CcPanelColorAccent1_Click;
+            ccPanelColorAccent1.Click += CCPanelColorX_Click;
             ccContainerColors.Controls.Add(ccPanelColorAccent1);
 
 
@@ -257,7 +260,7 @@ namespace Lyre
                 BackColor = Shared.preferences.colorAccent2,
                 Cursor = Cursors.Hand
             };
-            ccPanelColorAccent2.Click += CcPanelColorAccent2_Click;
+            ccPanelColorAccent2.Click += CCPanelColorX_Click;
             ccContainerColors.Controls.Add(ccPanelColorAccent2);
 
 
@@ -277,7 +280,7 @@ namespace Lyre
                 BackColor = Shared.preferences.colorAccent3,
                 Cursor = Cursors.Hand
             };
-            ccPanelColorAccent3.Click += CcPanelColorAccent3_Click;
+            ccPanelColorAccent3.Click += CCPanelColorX_Click;
             ccContainerColors.Controls.Add(ccPanelColorAccent3);
 
 
@@ -297,7 +300,7 @@ namespace Lyre
                 BackColor = Shared.preferences.colorAccent4,
                 Cursor = Cursors.Hand
             };
-            ccPanelColorAccent4.Click += CcPanelColorAccent4_Click;
+            ccPanelColorAccent4.Click += CCPanelColorX_Click;
             ccContainerColors.Controls.Add(ccPanelColorAccent4);
 
 
@@ -317,7 +320,7 @@ namespace Lyre
                 BackColor = Shared.preferences.colorAccent5,
                 Cursor = Cursors.Hand
             };
-            ccPanelColorAccent5.Click += CcPanelColorAccent5_Click;
+            ccPanelColorAccent5.Click += CCPanelColorX_Click;
             ccContainerColors.Controls.Add(ccPanelColorAccent5);
 
             ccLabelColorAccent6 = new Label()
@@ -336,7 +339,7 @@ namespace Lyre
                 BackColor = Shared.preferences.colorAccent6,
                 Cursor = Cursors.Hand
             };
-            ccPanelColorAccent6.Click += CcPanelColorAccent6_Click;
+            ccPanelColorAccent6.Click += CCPanelColorX_Click;
             ccContainerColors.Controls.Add(ccPanelColorAccent6);
 
 
@@ -356,7 +359,7 @@ namespace Lyre
                 BackColor = Shared.preferences.colorAccent7,
                 Cursor = Cursors.Hand
             };
-            ccPanelColorAccent7.Click += CcPanelColorAccent7_Click;
+            ccPanelColorAccent7.Click += CCPanelColorX_Click;
             ccContainerColors.Controls.Add(ccPanelColorAccent7);
 
             // File folder
@@ -407,7 +410,7 @@ namespace Lyre
                 Parent = ccContainerFiles,
                 Cursor = Cursors.Hand,
                 BackgroundImageLayout = ImageLayout.Zoom,
-                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory)),
+                BackgroundImage = SharedFunctions.getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory)),
                 BackColor = ccContainerFiles.BackColor
             };
             ccButtonFolderDownloads.Click += ccButtonFolderDownloads_Click;
@@ -442,11 +445,25 @@ namespace Lyre
                 Parent = ccContainerFiles,
                 Cursor = Cursors.Hand,
                 BackgroundImageLayout = ImageLayout.Zoom,
-                BackgroundImage = getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory)),
+                BackgroundImage = SharedFunctions.getImage(Path.Combine(OnlineResource.resourcesDirectory, OnlineResource.FormControls_IMG_Directory)),
                 BackColor = ccContainerFiles.BackColor
             };
             ccButtonFolderTemp.Click += CcButtonFolderTemp_Click;
             ccContainerFiles.Controls.Add(ccButtonFolderTemp);
+
+            ccLabelUpdate = new Label()
+            {
+                Parent = this,
+                BackColor = Shared.preferences.colorAccent6,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 36, GraphicsUnit.Pixel),
+                Text = "Update",
+                AutoSize = false,
+                Cursor = Cursors.Hand,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            ccLabelUpdate.Click += CcLabelUpdate_Click;
+            Controls.Add(ccLabelUpdate);
 
             // Bottom margin
             ccBottomMargin = new Panel()
@@ -457,20 +474,32 @@ namespace Lyre
             Controls.Add(ccBottomMargin);
         }
 
-        private int getUnfinishedDownloadsCount()
+        private void CcLabelUpdate_Click(object sender, EventArgs e)
         {
-            int downloadsActive = DownloadContainer.getActiveProcessesCount();
-            int downloadsInQueue = DownloadContainer.getDownloadsQueueCount();
-            int downloadsInPreQueue = Shared.mainForm.getDownloadsPreQueueCount();
+            try
+            {
+                string updaterLoc = OnlineResource.LyreUpdaterLocation;
+                string downloaderLoc = OnlineResource.LyreDownloaderLocation;
 
-            int downloadsUnfinished = downloadsActive + downloadsInQueue + downloadsInPreQueue;
+                // Problems with paths / descriptors?
+                //Directory.SetCurrentDirectory(updaterLoc);
 
-            return downloadsUnfinished;
+                Process p = new Process();
+                ProcessStartInfo ps = new ProcessStartInfo();
+                ps.FileName = Path.Combine(Directory.GetCurrentDirectory(), "updater\\LyreUpdater.exe");
+                p.StartInfo = ps;
+                p.Start();
+
+                // Problems with paths / descriptors?
+                //Directory.SetCurrentDirectory(downloaderLoc);
+                Shared.mainForm.Close();
+            }
+            catch (Exception ex) { }
         }
 
         private void CcButtonFolderTemp_Click(object sender, EventArgs e)
         {
-            if (getUnfinishedDownloadsCount() == 0)
+            if (Shared.getUnfinishedDownloadsCount() == 0)
             {
                 using (var folderDialog = new FolderBrowserDialog())
                 {
@@ -493,7 +522,7 @@ namespace Lyre
 
         private void ccButtonFolderDownloads_Click(object sender, EventArgs e)
         {
-            if (getUnfinishedDownloadsCount() == 0)
+            if (Shared.getUnfinishedDownloadsCount() == 0)
             {
                 using (var folderDialog = new FolderBrowserDialog())
                 {
@@ -514,157 +543,56 @@ namespace Lyre
             }
         }
 
-        public static Image getImage(string path)
+        private void CCPanelColorX_Click(object sender, EventArgs e)
         {
-            int counter = 0;
-            while (System.IO.File.Exists(path) == false)
+            Control senderControl = (Control)sender;
+            ccPicker.Color = senderControl.BackColor;
+            DialogResult result = ccPicker.ShowDialog();
+            if (result == DialogResult.OK)
             {
-                Application.DoEvents();
-                Thread.Sleep(50);
-                counter += 50;
-                if (counter > 1000)
+                senderControl.BackColor = ccPicker.Color;
+
+                // Specific setting to be edited
+                if(senderControl == ccPanelColorFont)
                 {
-                    break;
+                    Shared.preferences.colorFontDefault = ccPicker.Color;
                 }
-            }
-            try
-            {
-                Image img = Image.FromStream(new MemoryStream(System.IO.File.ReadAllBytes(path)));
-                return img;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
-
-        private void CcPanelColorAccent7_Click(object sender, EventArgs e)
-        {
-            Control senderControl = (Control)sender;
-            ccPicker.Color = senderControl.BackColor;
-            DialogResult result = ccPicker.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                senderControl.BackColor = ccPicker.Color;
-                // Specific setting to be edited
-                Shared.preferences.colorAccent7 = ccPicker.Color;
-            }
-        }
-
-        private void CcPanelColorAccent6_Click(object sender, EventArgs e)
-        {
-            Control senderControl = (Control)sender;
-            ccPicker.Color = senderControl.BackColor;
-            DialogResult result = ccPicker.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                senderControl.BackColor = ccPicker.Color;
-                // Specific setting to be edited
-                Shared.preferences.colorAccent6 = ccPicker.Color;
-            }
-        }
-
-        private void CcPanelColorAccent5_Click(object sender, EventArgs e)
-        {
-            Control senderControl = (Control)sender;
-            ccPicker.Color = senderControl.BackColor;
-            DialogResult result = ccPicker.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                senderControl.BackColor = ccPicker.Color;
-                // Specific setting to be edited
-                Shared.preferences.colorAccent5 = ccPicker.Color;
-            }
-        }
-
-        private void CcPanelColorAccent4_Click(object sender, EventArgs e)
-        {
-            Control senderControl = (Control)sender;
-            ccPicker.Color = senderControl.BackColor;
-            DialogResult result = ccPicker.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                senderControl.BackColor = ccPicker.Color;
-                // Specific setting to be edited
-                Shared.preferences.colorAccent4 = ccPicker.Color;
-            }
-        }
-
-        private void CcPanelColorAccent3_Click(object sender, EventArgs e)
-        {
-            Control senderControl = (Control)sender;
-            ccPicker.Color = senderControl.BackColor;
-            DialogResult result = ccPicker.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                senderControl.BackColor = ccPicker.Color;
-                // Specific setting to be edited
-                Shared.preferences.colorAccent3 = ccPicker.Color;
-            }
-        }
-
-        private void CcPanelColorAccent2_Click(object sender, EventArgs e)
-        {
-            Control senderControl = (Control)sender;
-            ccPicker.Color = senderControl.BackColor;
-            DialogResult result = ccPicker.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                senderControl.BackColor = ccPicker.Color;
-                // Specific setting to be edited
-                Shared.preferences.colorAccent2 = ccPicker.Color;
-            }
-        }
-
-        private void CcPanelColorAccent1_Click(object sender, EventArgs e)
-        {
-            Control senderControl = (Control)sender;
-            ccPicker.Color = senderControl.BackColor;
-            DialogResult result = ccPicker.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                senderControl.BackColor = ccPicker.Color;
-                // Specific setting to be edited
-                Shared.preferences.colorAccent1 = ccPicker.Color;
-            }
-        }
-
-        private void CcPanelColorBackground_Click(object sender, EventArgs e)
-        {
-            Control senderControl = (Control)sender;
-            ccPicker.Color = senderControl.BackColor;
-            DialogResult result = ccPicker.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                senderControl.BackColor = ccPicker.Color;
-                // Specific setting to be edited
-                Shared.preferences.colorBackground = ccPicker.Color;
-            }
-        }
-
-        private void CcPanelColorForeground_Click(object sender, EventArgs e)
-        {
-            Control senderControl = (Control)sender;
-            ccPicker.Color = senderControl.BackColor;
-            DialogResult result = ccPicker.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                senderControl.BackColor = ccPicker.Color;
-                // Specific setting to be edited
-                Shared.preferences.colorForeground = ccPicker.Color;
-            }
-        }
-
-        private void CcPanelColorFont_Click(object sender, EventArgs e)
-        {
-            Control senderControl = (Control)sender;
-            ccPicker.Color = senderControl.BackColor;
-            DialogResult result = ccPicker.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                senderControl.BackColor = ccPicker.Color;
-                // Specific setting to be edited
-                Shared.preferences.colorFontDefault = ccPicker.Color;
+                else if (senderControl == ccPanelColorForeground)
+                {
+                    Shared.preferences.colorForeground = ccPicker.Color;
+                }
+                else if (senderControl == ccPanelColorBackground)
+                {
+                    Shared.preferences.colorBackground = ccPicker.Color;
+                }
+                else if (senderControl == ccPanelColorAccent1)
+                {
+                    Shared.preferences.colorAccent1 = ccPicker.Color;
+                }
+                else if (senderControl == ccPanelColorAccent2)
+                {
+                    Shared.preferences.colorAccent2 = ccPicker.Color;
+                }
+                else if (senderControl == ccPanelColorAccent3)
+                {
+                    Shared.preferences.colorAccent3 = ccPicker.Color;
+                }
+                else if (senderControl == ccPanelColorAccent4)
+                {
+                    Shared.preferences.colorAccent4 = ccPicker.Color;
+                }
+                else if (senderControl == ccPanelColorAccent5)
+                {
+                    Shared.preferences.colorAccent5 = ccPicker.Color;
+                }
+                else if (senderControl == ccPanelColorAccent6)
+                {
+                    Shared.preferences.colorAccent6 = ccPicker.Color;
+                }
+                else if (senderControl == ccPanelColorAccent7)
+                {
+                    Shared.preferences.colorAccent7 = ccPicker.Color;
+                }
             }
         }
 
@@ -809,12 +737,18 @@ namespace Lyre
             ccTextFolderTemp.Width = ccButtonFolderDownloads.Left - (bottomMargin * 2) - ccLabelFolderTemp.Width - ccLabelFolderTemp.Left;
             ccTextFolderTemp.Height = (int)(ccTextFolderTemp.Font.Size * 3 * 1.5);
 
+            // Update
+            ccLabelUpdate.Height = 60;
+            ccLabelUpdate.Width = 150;
+            ccLabelUpdate.Left = ccContainerFiles.Left;
+            ccLabelUpdate.Top = ccContainerFiles.Top + ccContainerFiles.Height + 50;
+
 
             // Bottom margin
             ccBottomMargin.Height = 1;
             ccBottomMargin.Width = 1;
             ccBottomMargin.Left = ccContainerFiles.Left;
-            ccBottomMargin.Top = ccContainerFiles.Top + ccContainerFiles.Height + 100;
+            ccBottomMargin.Top = ccLabelUpdate.Top + ccLabelUpdate.Height + 100;
         }
     }
 }
