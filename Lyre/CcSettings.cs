@@ -9,59 +9,59 @@ using System.Diagnostics;
 
 namespace Lyre
 {
-    class CcSettings : Panel
+    class CcSettings : CcPanel
     {
         private ColorDialog ccPicker;
         private Timer timerStatusUpdater;
 
         private Label ccLabelSettins;
-        private Panel ccBottomMargin;
+        private CcPanel ccBottomMargin;
 
         // Colors
-        private Panel ccContainerColors;
+        private CcPanel ccContainerColors;
         private Label ccTitleColors;
 
         private Label ccLabelColorFont;
-        private Panel ccPanelColorFont;
+        private CcPanel ccPanelColorFont;
 
         private Label ccLabelColorForeground;
-        private Panel ccPanelColorForeground;
+        private CcPanel ccPanelColorForeground;
 
         private Label ccLabelColorBackground;
-        private Panel ccPanelColorBackground;
+        private CcPanel ccPanelColorBackground;
 
         private Label ccLabelColorAccent1;
-        private Panel ccPanelColorAccent1;
+        private CcPanel ccPanelColorAccent1;
 
         private Label ccLabelColorAccent2;
-        private Panel ccPanelColorAccent2;
+        private CcPanel ccPanelColorAccent2;
 
         private Label ccLabelColorAccent3;
-        private Panel ccPanelColorAccent3;
+        private CcPanel ccPanelColorAccent3;
 
         private Label ccLabelColorAccent4;
-        private Panel ccPanelColorAccent4;
+        private CcPanel ccPanelColorAccent4;
 
         private Label ccLabelColorAccent5;
-        private Panel ccPanelColorAccent5;
+        private CcPanel ccPanelColorAccent5;
 
         private Label ccLabelColorAccent6;
-        private Panel ccPanelColorAccent6;
+        private CcPanel ccPanelColorAccent6;
 
         private Label ccLabelColorAccent7;
-        private Panel ccPanelColorAccent7;
+        private CcPanel ccPanelColorAccent7;
 
         // File folder
-        private Panel ccContainerFiles;
+        private CcPanel ccContainerFiles;
         private Label ccTitleFiles;
 
         private Label ccLabelFolderDownloads;
         private RichTextBox ccTextFolderDownloads;
-        private Panel ccButtonFolderDownloads;
+        private CcPanel ccButtonFolderDownloads;
 
         private Label ccLabelFolderTemp;
         private RichTextBox ccTextFolderTemp;
-        private Panel ccButtonFolderTemp;
+        private CcPanel ccButtonFolderTemp;
 
         // Update
         private Label ccLabelUpdate;
@@ -143,7 +143,7 @@ namespace Lyre
             Controls.Add(ccLabelSettins);
 
             // Colors
-            ccContainerColors = new Panel()
+            ccContainerColors = new CcPanel()
             {
                 Parent = this,
                 BackColor = Shared.preferences.colorBackground,
@@ -173,7 +173,7 @@ namespace Lyre
             };
             ccContainerColors.Controls.Add(ccLabelColorFont);
 
-            ccPanelColorFont = new Panel()
+            ccPanelColorFont = new CcPanel()
             {
                 Parent = ccContainerColors,
                 BackColor = Shared.preferences.colorFontDefault,
@@ -193,7 +193,7 @@ namespace Lyre
             };
             ccContainerColors.Controls.Add(ccLabelColorForeground);
 
-            ccPanelColorForeground = new Panel()
+            ccPanelColorForeground = new CcPanel()
             {
                 Parent = ccContainerColors,
                 BackColor = Shared.preferences.colorForeground,
@@ -213,7 +213,7 @@ namespace Lyre
             };
             ccContainerColors.Controls.Add(ccLabelColorBackground);
 
-            ccPanelColorBackground = new Panel()
+            ccPanelColorBackground = new CcPanel()
             {
                 Parent = ccContainerColors,
                 BackColor = Shared.preferences.colorBackground,
@@ -234,7 +234,7 @@ namespace Lyre
             };
             ccContainerColors.Controls.Add(ccLabelColorAccent1);
 
-            ccPanelColorAccent1 = new Panel()
+            ccPanelColorAccent1 = new CcPanel()
             {
                 Parent = ccContainerColors,
                 BackColor = Shared.preferences.colorAccent1,
@@ -254,7 +254,7 @@ namespace Lyre
             };
             ccContainerColors.Controls.Add(ccLabelColorAccent2);
 
-            ccPanelColorAccent2 = new Panel()
+            ccPanelColorAccent2 = new CcPanel()
             {
                 Parent = ccContainerColors,
                 BackColor = Shared.preferences.colorAccent2,
@@ -274,7 +274,7 @@ namespace Lyre
             };
             ccContainerColors.Controls.Add(ccLabelColorAccent3);
 
-            ccPanelColorAccent3 = new Panel()
+            ccPanelColorAccent3 = new CcPanel()
             {
                 Parent = ccContainerColors,
                 BackColor = Shared.preferences.colorAccent3,
@@ -294,7 +294,7 @@ namespace Lyre
             };
             ccContainerColors.Controls.Add(ccLabelColorAccent4);
 
-            ccPanelColorAccent4 = new Panel()
+            ccPanelColorAccent4 = new CcPanel()
             {
                 Parent = ccContainerColors,
                 BackColor = Shared.preferences.colorAccent4,
@@ -314,7 +314,7 @@ namespace Lyre
             };
             ccContainerColors.Controls.Add(ccLabelColorAccent5);
 
-            ccPanelColorAccent5 = new Panel()
+            ccPanelColorAccent5 = new CcPanel()
             {
                 Parent = ccContainerColors,
                 BackColor = Shared.preferences.colorAccent5,
@@ -333,7 +333,7 @@ namespace Lyre
             };
             ccContainerColors.Controls.Add(ccLabelColorAccent6);
 
-            ccPanelColorAccent6 = new Panel()
+            ccPanelColorAccent6 = new CcPanel()
             {
                 Parent = ccContainerColors,
                 BackColor = Shared.preferences.colorAccent6,
@@ -353,7 +353,7 @@ namespace Lyre
             };
             ccContainerColors.Controls.Add(ccLabelColorAccent7);
 
-            ccPanelColorAccent7 = new Panel()
+            ccPanelColorAccent7 = new CcPanel()
             {
                 Parent = ccContainerColors,
                 BackColor = Shared.preferences.colorAccent7,
@@ -363,7 +363,7 @@ namespace Lyre
             ccContainerColors.Controls.Add(ccPanelColorAccent7);
 
             // File folder
-            ccContainerFiles = new Panel()
+            ccContainerFiles = new CcPanel()
             {
                 Parent = this,
                 BackColor = Shared.preferences.colorBackground,
@@ -405,7 +405,7 @@ namespace Lyre
             };
             ccContainerFiles.Controls.Add(ccTextFolderDownloads);
 
-            ccButtonFolderDownloads = new Panel()
+            ccButtonFolderDownloads = new CcPanel()
             {
                 Parent = ccContainerFiles,
                 Cursor = Cursors.Hand,
@@ -440,7 +440,7 @@ namespace Lyre
             };
             ccContainerFiles.Controls.Add(ccTextFolderTemp);
 
-            ccButtonFolderTemp = new Panel()
+            ccButtonFolderTemp = new CcPanel()
             {
                 Parent = ccContainerFiles,
                 Cursor = Cursors.Hand,
@@ -466,7 +466,7 @@ namespace Lyre
             Controls.Add(ccLabelUpdate);
 
             // Bottom margin
-            ccBottomMargin = new Panel()
+            ccBottomMargin = new CcPanel()
             {
                 Parent = this,
                 BackColor = BackColor

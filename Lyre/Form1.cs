@@ -28,24 +28,24 @@ namespace Lyre
         //
         ////  Controls
         //
-        private Panel ccContainer;
-        private Panel ccTopBar;
-        private Panel ccDownloadsContainer;
+        private CcPanel ccContainer;
+        private CcPanel ccTopBar;
+        private CcPanel ccDownloadsContainer;
         private DownloadContainer dcMain;
-        private Panel ccFormMinimize;
-        private Panel ccFormMaximize;
-        private Panel ccFormClose;
-        private Panel ccDownloadsDirectory;
+        private CcPanel ccFormMinimize;
+        private CcPanel ccFormMaximize;
+        private CcPanel ccFormClose;
+        private CcPanel ccDownloadsDirectory;
         private Label ccHint;
         private Label ccVideoQuality;
-        private Panel ccSettingsButton;
-        private Panel ccSettingsContainer;
+        private CcPanel ccSettingsButton;
+        private CcPanel ccSettingsContainer;
         private CcSettings ccSettingsPanel;
-        private Panel ccSettingsBottomMargin;
+        private CcPanel ccSettingsBottomMargin;
         private RichTextBox ccResourceDownloaderLog;
 
         // Status Bar
-        private Panel ccStatusBar;
+        private CcPanel ccStatusBar;
         private Label ccDownloadsText;
         private Label ccDownloadsValue;
         private Label ccActiveDownloadsText;
@@ -54,7 +54,7 @@ namespace Lyre
         private CcToggle ccCanConvert;
 
         // Instructions
-        private Panel ccPanelInstructions;
+        private CcPanel ccPanelInstructions;
         private RichTextBox ccTextInstructions;
 
         private object resourcesMissingCountLock = new object();
@@ -362,7 +362,7 @@ namespace Lyre
             MouseDown += Form1_MouseDown;
             KeyPreview = true;
 
-            ccContainer = new Panel()
+            ccContainer = new CcPanel()
             {
                 Parent = this,
                 BackColor = Shared.preferences.colorForeground,
@@ -370,7 +370,7 @@ namespace Lyre
             };
             Controls.Add(ccContainer);
 
-            ccTopBar = new Panel()
+            ccTopBar = new CcPanel()
             {
                 Parent = ccContainer,
                 BackColor = Shared.preferences.colorBackground
@@ -378,7 +378,7 @@ namespace Lyre
             ccTopBar.MouseDown += Form1_MouseDown;
             ccContainer.Controls.Add(ccTopBar);
 
-            ccDownloadsContainer = new Panel()
+            ccDownloadsContainer = new CcPanel()
             {
                 Parent = ccContainer,
                 BackColor = Shared.preferences.colorForeground,
@@ -389,7 +389,7 @@ namespace Lyre
             ccDownloadsContainer.KeyUp += Paste_KeyUp;
             ccContainer.Controls.Add(ccDownloadsContainer);
 
-            ccSettingsContainer = new Panel()
+            ccSettingsContainer = new CcPanel()
             {
                 Parent = ccContainer,
                 BackColor = Shared.preferences.colorForeground,
@@ -404,14 +404,14 @@ namespace Lyre
             //ccSettingsPanel.AutoScroll = true;
             ccSettingsContainer.Controls.Add(ccSettingsPanel);
 
-            ccSettingsBottomMargin = new Panel()
+            ccSettingsBottomMargin = new CcPanel()
             {
                 Parent = ccSettingsContainer,
                 BackColor = ccSettingsContainer.BackColor
             };
             ccSettingsContainer.Controls.Add(ccSettingsBottomMargin);
 
-            ccFormMinimize = new Panel()
+            ccFormMinimize = new CcPanel()
             {
                 Parent = ccTopBar,
                 Cursor = Cursors.Hand,
@@ -423,7 +423,7 @@ namespace Lyre
             ccFormMinimize.Click += CcFormMinimize_Click;
             ccTopBar.Controls.Add(ccFormMinimize);
 
-            ccFormMaximize = new Panel()
+            ccFormMaximize = new CcPanel()
             {
                 Parent = ccTopBar,
                 Cursor = Cursors.Hand,
@@ -435,7 +435,7 @@ namespace Lyre
             ccFormMaximize.Click += CcFormMaximize_Click;
             ccTopBar.Controls.Add(ccFormMaximize);
 
-            ccFormClose = new Panel()
+            ccFormClose = new CcPanel()
             {
                 Parent = ccTopBar,
                 Cursor = Cursors.Hand,
@@ -447,7 +447,7 @@ namespace Lyre
             ccFormClose.Click += CcFormClose_Click;
             ccTopBar.Controls.Add(ccFormClose);
 
-            ccDownloadsDirectory = new Panel()
+            ccDownloadsDirectory = new CcPanel()
             {
                 Parent = ccTopBar,
                 Cursor = Cursors.Hand,
@@ -470,7 +470,7 @@ namespace Lyre
             };
             ccTopBar.Controls.Add(ccHint);
 
-            ccSettingsButton = new Panel()
+            ccSettingsButton = new CcPanel()
             {
                 Parent = ccTopBar,
                 Cursor = Cursors.Hand,
@@ -483,7 +483,7 @@ namespace Lyre
             ccTopBar.Controls.Add(ccSettingsButton);
 
             // Status Bar
-            ccStatusBar = new Panel()
+            ccStatusBar = new CcPanel()
             {
                 Parent = ccDownloadsContainer,
                 BackColor = Shared.preferences.colorBackground
@@ -492,7 +492,7 @@ namespace Lyre
             ccDownloadsContainer.Controls.Add(ccStatusBar);
 
             // Instructions
-            ccPanelInstructions = new Panel()
+            ccPanelInstructions = new CcPanel()
             {
                 Parent = ccDownloadsContainer,
                 BackColor = Shared.preferences.colorBackground

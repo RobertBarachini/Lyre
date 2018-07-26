@@ -73,6 +73,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CcPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="CcSettings.cs">
       <SubType>Component</SubType>
     </Compile>

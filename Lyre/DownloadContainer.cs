@@ -17,7 +17,7 @@ using TagLib;
 //
 // - check if the download and encoding has been a success - check at event "Process.Exit" = mp3/video exists
 
-class DownloadContainer : Panel
+class DownloadContainer : CcPanel
 {
     private static object downloadsLock = new object();
     private static LinkedList<DownloadContainer> downloads = new LinkedList<DownloadContainer>();
