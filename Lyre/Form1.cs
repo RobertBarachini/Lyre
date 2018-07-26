@@ -382,7 +382,8 @@ namespace Lyre
             {
                 Parent = ccContainer,
                 BackColor = Shared.preferences.colorForeground,
-                AutoScroll = true
+                AutoScroll = true,
+                AutoSize = false
             };
             ccDownloadsContainer.KeyDown += Paste_KeyDown;
             ccDownloadsContainer.KeyUp += Paste_KeyUp;
@@ -647,11 +648,11 @@ namespace Lyre
         {
             if (e.Button == MouseButtons.Left)
             {
-                Shared.preferences.maxActiveProcesses = Math.Min(Math.Min(Shared.preferences.maxDownloadContainerControls, Shared.preferences.maxActiveProcesses + 5), int.MaxValue);
+                Shared.preferences.maxActiveProcesses = Math.Min(Math.Min(Shared.preferences.maxDownloadContainerControls, Shared.preferences.maxActiveProcesses + 4), int.MaxValue);
             }
             else if (e.Button == MouseButtons.Right)
             {
-                Shared.preferences.maxActiveProcesses = Math.Max(1, Shared.preferences.maxActiveProcesses - 5);
+                Shared.preferences.maxActiveProcesses = Math.Max(1, Shared.preferences.maxActiveProcesses - 4);
             }
 
             updateStatusBar();
@@ -675,11 +676,11 @@ namespace Lyre
         {
             if (e.Button == MouseButtons.Left)
             {
-                Shared.preferences.maxDownloadContainerControls = Math.Min(Shared.preferences.maxDownloadContainerControls + 5, int.MaxValue);
+                Shared.preferences.maxDownloadContainerControls = Math.Min(Shared.preferences.maxDownloadContainerControls + 4, int.MaxValue);
             }
             else if (e.Button == MouseButtons.Right)
             {
-                Shared.preferences.maxDownloadContainerControls = Math.Max(1, Shared.preferences.maxDownloadContainerControls - 5);
+                Shared.preferences.maxDownloadContainerControls = Math.Max(1, Shared.preferences.maxDownloadContainerControls - 4);
                 Shared.preferences.maxActiveProcesses = Math.Min(Shared.preferences.maxDownloadContainerControls, Shared.preferences.maxActiveProcesses);
             }
 
@@ -710,13 +711,13 @@ namespace Lyre
         {
             if (e.Button == MouseButtons.Left)
             {
-                Shared.increaseVideoQuality();
+                //Shared.increaseVideoQuality();
                 Shared.increaseVideoQuality();
             }
             else if (e.Button == MouseButtons.Right)
             {
+                //Shared.decreaseVideoQuality();
                 Shared.decreaseVideoQuality();
-                Shared.increaseVideoQuality();
             }
 
             updateCcVideoQualityText();
@@ -941,7 +942,7 @@ namespace Lyre
             this.ResumeLayout();
         }
 
-        private void resizeDcMain()
+        public void resizeDcMain()
         {
             try
             {

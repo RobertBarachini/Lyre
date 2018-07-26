@@ -194,8 +194,10 @@ class DownloadContainer : Panel
                                 {
                                     dc.title.Text = "Waiting for download ...";
                                 });
+
                                 dc.download_p(dc.url.ToString(), dc.destinationDirectory, dc.canConvert);
                             }).Start();
+
 
                             activeProcesses++;
                             dc.downloadStarted = true;
@@ -270,12 +272,14 @@ class DownloadContainer : Panel
         title = new Label()
         {
             Parent = this,
-            Font = Shared.preferences.fontDefault,
+            //Font = Shared.preferences.fontDefault,
             Text = "Queued for download ...",
             ForeColor = Shared.preferences.colorFontDefault,
-            TextAlign = ContentAlignment.TopLeft
+            TextAlign = ContentAlignment.TopLeft,
+            Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel),
+            Cursor = Cursors.Hand
         };
-        title.Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel);
+        title.Click += Title_Click;
         Controls.Add(title);
 
         progressBar = new Panel()
@@ -337,6 +341,14 @@ class DownloadContainer : Panel
         if (Shared.preferences.enableThumbnailAnimations)
         {
             animateGeneral.Start();
+        }
+    }
+
+    private void Title_Click(object sender, EventArgs e)
+    {
+        if (url != null)
+        {
+            Process.Start(url.ToString());
         }
     }
 
@@ -462,6 +474,7 @@ class DownloadContainer : Panel
             if(System.IO.File.Exists(Path.Combine(Shared.preferences.downloadsDirectory, outputFilename + ".mp3")))
             {
                 outputFileExists = true;
+                outputPath = Path.Combine(Shared.preferences.downloadsDirectory, outputFilename + ".mp3");
             }
         }
 
@@ -474,6 +487,9 @@ class DownloadContainer : Panel
             {
                 progressLabel.BackColor = Shared.preferences.colorAccent4;
                 progressLabel.Text = "Already on disk";
+                progressLabel.Cursor = Cursors.Hand;
+                status = Status.Done;
+                success = true;
             });
             animateProgress.Stop();
             this.title.Invoke((MethodInvoker)delegate
@@ -519,6 +535,19 @@ class DownloadContainer : Panel
     private void download_p(string url, string destinationDirectory, bool canConvert)
     {
         //animateProgress.Start();
+
+        // Push the newly activated download to the top of the list
+        lock (downloadsLock)
+        {
+            downloads.Remove(this);
+            downloads.AddFirst(this);
+            downloadNode = downloads.First;
+        }
+        // Call resize to change the order of download controls shown in download container
+        Shared.mainForm.Invoke((MethodInvoker)delegate
+        {
+            Shared.mainForm.resizeDcMain();
+        });
 
         if (Directory.Exists(Shared.preferences.tempDirectoy) == false)
         {
@@ -624,6 +653,18 @@ class DownloadContainer : Panel
                 dlOutputPath = dlOutputPath.Substring(0, dlOutputPath.Length - 1);
                 infoJSON["ext"] = dlOutputPath.Substring(dlOutputPath.LastIndexOf(".") + 1);
             }
+            else if(data.Contains("has already been downloaded"))
+            {
+                data = data.Substring(data.LastIndexOf(".") + 1);
+                data = data.Substring(0, data.IndexOf(" "));
+                infoJSON["ext"] = data;
+            }
+            else if(data.ToLower().Contains("warning") || data.ToLower().Contains("error"))
+            {
+                //finishProcess();
+                //reportDownloadError("❌ ERROR - Cannot download video - check video source");
+                singleDownload.Kill();
+            }
             else
             {
                 // TO BE IMPLEMENTED
@@ -657,7 +698,12 @@ class DownloadContainer : Panel
         }
 
         // Construct the start of mainJSON
-        constructMainJSON(0);
+        try
+        {
+            constructMainJSON(0);
+        }
+        catch (Exception ex) { }
+
         if(dlOutputPath == null) // how to catch output path in any given situation ?
         {
             reportDownloadError();
@@ -681,6 +727,11 @@ class DownloadContainer : Panel
 
     private void reportDownloadError()
     {
+        reportDownloadError("❌ Failed - Click here to retry");
+    }
+
+    private void reportDownloadError(string message)
+    {
         status = Status.Done;
         success = false;
         animateProgress.Stop();
@@ -688,7 +739,7 @@ class DownloadContainer : Panel
         this.progressLabel.Invoke((MethodInvoker)delegate
         {
             progressLabel.Cursor = Cursors.Hand;
-            this.progressLabel.Text = "❌ Failed - Click here to retry";
+            this.progressLabel.Text = message;
             progressLabel.BackColor = Shared.preferences.colorAccent4;
         });
         this.title.Invoke((MethodInvoker)delegate
@@ -916,17 +967,23 @@ class DownloadContainer : Panel
             catch (Exception ex) { }
         }
 
-        string outputFileName = infoJSON.GetValue("fulltitle").ToString();
-        outputFileName = SharedFunctions.getValidFileName(outputFileName);
-        status = Status.WritingOutput;
-
-        string extension = "";
-        extension = canConvert ? ".mp3" : "." + infoJSON.GetValue("ext").ToString(); // ext / _filename
-
         try
         {
+            string outputFileName = infoJSON.GetValue("fulltitle").ToString();
+            outputFileName = SharedFunctions.getValidFileName(outputFileName);
+            status = Status.WritingOutput;
+
+            string extension = "";
+            extension = canConvert ? ".mp3" : "." + infoJSON.GetValue("ext").ToString(); // ext / _filename
+
             outputPath = Path.Combine(destinationDirectory, outputFileName + extension);
-            System.IO.File.Move(Path.Combine(Shared.preferences.tempDirectoy, videoID) + extension, outputPath);
+
+            try
+            {
+                System.IO.File.Move(Path.Combine(Shared.preferences.tempDirectoy, videoID) + extension, outputPath);
+            }
+            catch (Exception ex) { }
+
             if (System.IO.File.Exists(outputPath))
             {
                 success = true;
@@ -935,35 +992,35 @@ class DownloadContainer : Panel
             {
                 success = false;
             }
-        }
-        catch (Exception ex) { }
 
-        try
-        {
-            System.IO.File.Delete(Path.Combine(Shared.preferences.tempDirectoy, videoID) + extension);
-        }
-        catch (Exception ex) { }
+            try
+            {
+                System.IO.File.Delete(Path.Combine(Shared.preferences.tempDirectoy, videoID) + extension);
+            }
+            catch (Exception ex) { }
 
-        try
-        {
-            System.IO.File.Delete(dlOutputPath);
-        }
-        catch (Exception ex) { }
+            try
+            {
+                System.IO.File.Delete(dlOutputPath);
+            }
+            catch (Exception ex) { }
 
-        //EXAMPLE : Path.GetFullPath((new Uri(absolute_path)).LocalPath);
-        HistoryItem hi = new HistoryItem()
-        {
-            path_output = Path.GetFullPath(Path.Combine(destinationDirectory, outputFileName + extension)),
-            path_thumbnail = Path.GetFullPath(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension)),
-            title = infoJSON.GetValue("fulltitle").ToString(),
-            url = infoJSON.GetValue("webpage_url").ToString(),
-            time_created_UTC = DateTime.UtcNow
-        };
+            //EXAMPLE : Path.GetFullPath((new Uri(absolute_path)).LocalPath);
+            HistoryItem hi = new HistoryItem()
+            {
+                path_output = Path.GetFullPath(Path.Combine(destinationDirectory, outputFileName + extension)),
+                path_thumbnail = Path.GetFullPath(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension)),
+                title = infoJSON.GetValue("fulltitle").ToString(),
+                url = infoJSON.GetValue("webpage_url").ToString(),
+                time_created_UTC = DateTime.UtcNow
+            };
 
-        lock (Shared.lockHistory)
-        {
-            Shared.history.AddFirst(hi);
+            lock (Shared.lockHistory)
+            {
+                Shared.history.AddFirst(hi);
+            }
         }
+        catch(Exception ex) { }
 
         this.progressLabel.Invoke((MethodInvoker)delegate
         {
