@@ -836,6 +836,7 @@ namespace Lyre
             }
             else
             {
+                ccHistoryButton.ForeColor = Shared.preferences.colorFontDefault;
                 turnOnContainerInvisibility();
                 ccSettingsContainer.Visible = true;
             }

@@ -105,6 +105,18 @@ public class SharedFunctions // Common functions for entire Lyre solution
             Replace("|", "ǀ");
     }
 
+    public static string getSearchString(string match)
+    {
+        return match
+            .ToLower()
+            .Replace(" ", "")
+            .Replace(":", "")
+            .Replace(".", "")
+            .Replace(",", "")
+            .Replace("-", "")
+            .Replace("'", "");
+    }
+
     public static string getExtension(string input)
     {
         int index = input.LastIndexOf(".");

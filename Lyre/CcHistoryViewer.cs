@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,11 @@ public class CcHistoryViewer : CcPanel
     private static LinkedList<CcHistoryItemContainer> hiControls = new LinkedList<CcHistoryItemContainer>();
     private static object historyListLock;
     private static Timer timerRefreshMissingHi;
+    private static string searchPlaceholder = "Search";
+    private static int minimumRequiredLength = 2;
+
+    private static CcPanel ccSearchContainer;
+    private static TextBox ccSearch;
 
     public CcHistoryViewer()
     {
@@ -30,6 +36,58 @@ public class CcHistoryViewer : CcPanel
         VisibleChanged += CcHistoryViewer_VisibleChanged;
         DoubleBuffered = true;
         AutoScroll = true;
+
+        ccSearchContainer = new CcPanel()
+        {
+            Parent = this,
+            BackColor = Shared.preferences.colorBackground
+        };
+        Controls.Add(ccSearchContainer);
+
+        ccSearch = new TextBox()
+        {
+            Parent = ccSearchContainer,
+            BorderStyle = BorderStyle.None,
+            BackColor = Shared.preferences.colorBackground,
+            ForeColor = Shared.preferences.colorFontDefault,
+            Font = new Font(Shared.preferences.fontDefault.FontFamily, 26, GraphicsUnit.Pixel),
+            Text = searchPlaceholder
+        };
+        ccSearch.TextChanged += CcSearch_TextChanged;
+        ccSearch.GotFocus += CcSearch_GotFocus;
+        ccSearch.LostFocus += CcSearch_LostFocus;
+        ccSearchContainer.Controls.Add(ccSearch);
+    }
+
+    private void CcSearch_LostFocus(object sender, EventArgs e)
+    {
+        if(ccSearch.Text.Length < minimumRequiredLength)
+        {
+            ccSearch.Text = searchPlaceholder;
+        }
+    }
+
+    private void CcSearch_GotFocus(object sender, EventArgs e)
+    {
+        if(ccSearch.Text.Equals(searchPlaceholder))
+        {
+            ccSearch.Text = "";
+        }
+    }
+
+    private void CcSearch_TextChanged(object sender, EventArgs e)
+    {
+        if(ccSearch.Text.Length < minimumRequiredLength)
+        {
+            filterReset();
+        }
+        else
+        {
+            if (ccSearch.ContainsFocus)
+            {
+                filterVisible(ccSearch.Text);
+            }
+        }
     }
 
     private void CcHistoryViewer_VisibleChanged(object sender, EventArgs e)
@@ -110,15 +168,47 @@ public class CcHistoryViewer : CcPanel
 
         if (added > 0)
         {
+            //filterVisible("mix");
             ResizeComponents();
         }
-        Shared.mainForm.Text = hiControls.Count.ToString();
+
+        //Shared.mainForm.Text = hiControls.Count.ToString();
     }
 
     // Search - Filter by video title, url, ...
     private void filterVisible(string match)
     {
+        string matchS = SharedFunctions.getSearchString(match);
+
         // Not yet implemented
+        if (match.Length < minimumRequiredLength) // 3
+        {
+            return;
+        }
+
+        foreach(CcHistoryItemContainer hiC in hiControls)
+        {
+            HistoryItem hi = hiC.getHistoryItem();
+            if(SharedFunctions.getSearchString(hi.title).Contains(matchS))
+            {
+                hiC.Visible = true;
+            }
+            else
+            {
+                hiC.Visible = false;
+            }
+        }
+
+        ResizeComponents();
+    }
+
+    private void filterReset()
+    {
+        foreach (CcHistoryItemContainer hiC in hiControls)
+        {
+            hiC.Visible = true;
+        }
+        ResizeComponents();
     }
 
     private void ResizeComponents()
@@ -130,12 +220,24 @@ public class CcHistoryViewer : CcPanel
 
         SuspendLayout();
 
-        int topPoint = 50;
         int counter = 0;
         int hiHeight = 80;
         int hiWidth = Width - 200;
         int hiLeft = (Width - hiWidth) / 2;
         int bottomMargin = 30;
+
+        ccSearchContainer.Top = 50;
+        ccSearchContainer.Left = hiLeft;
+        ccSearchContainer.Height = 60;
+        ccSearchContainer.Width = hiWidth;
+
+        ccSearch.Left = 32;
+        ccSearch.Width = ccSearchContainer.Width - (ccSearch.Left * 2);
+        ccSearch.Height = ccSearchContainer.Height;
+        ccSearch.Top = (ccSearchContainer.Height - ccSearch.Height) / 2;
+
+        int topPoint = ccSearchContainer.Top + ccSearchContainer.Height + bottomMargin; //50;
+        
 
         foreach(CcHistoryItemContainer hi in hiControls)
         {
