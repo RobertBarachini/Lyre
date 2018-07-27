@@ -73,6 +73,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CcHistoryItemContainer.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CcHistoryViewer.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="CcPanel.cs">
       <SubType>Component</SubType>
     </Compile>

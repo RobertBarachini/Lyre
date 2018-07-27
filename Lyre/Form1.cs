@@ -38,6 +38,8 @@ namespace Lyre
         private CcPanel ccDownloadsDirectory;
         private Label ccHint;
         private Label ccVideoQuality;
+        private Label ccHistoryButton;
+        private CcHistoryViewer ccHistoryViewer;
         private CcPanel ccSettingsButton;
         private CcPanel ccSettingsContainer;
         private CcSettings ccSettingsPanel;
@@ -610,6 +612,19 @@ namespace Lyre
             ccTopBar.Controls.Add(ccVideoQuality);
             updateCcVideoQualityText();
 
+            ccHistoryButton = new Label()
+            {
+                Parent = ccTopBar,
+                BackColor = ccTopBar.BackColor,
+                ForeColor = Shared.preferences.colorFontDefault,
+                Cursor = Cursors.Hand,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 24, GraphicsUnit.Pixel),
+                AutoSize = true,
+                Text = "Hi"
+            };
+            ccHistoryButton.Click += CcHistoryButton_Click;
+            ccTopBar.Controls.Add(ccHistoryButton);
+
             // Resource Downloader (debug oriented)
             ccResourceDownloaderLog = new RichTextBox()
             {
@@ -637,6 +652,37 @@ namespace Lyre
             // Show the desired container - downloadsContainer is default
             turnOnContainerInvisibility();
             ccDownloadsContainer.Visible = true;
+        }
+
+        private void CcHistoryButton_Click(object sender, EventArgs e)
+        {
+            // Init the viewer - not initialized at start to conserve resources
+            if(ccHistoryViewer == null)
+            {
+                ccHistoryViewer = new CcHistoryViewer()
+                {
+                    Parent = ccContainer,
+                    BackColor = Shared.preferences.colorForeground,
+                    AutoScroll = true,
+                    AutoSize = false
+                };
+                ccContainer.Controls.Add(ccHistoryViewer);
+                ccHistoryViewer.Visible = false;
+            }
+
+            if(ccHistoryViewer.Visible)
+            {
+                turnOnContainerInvisibility();
+                ccDownloadsContainer.Visible = true;
+                ccHistoryButton.ForeColor = Shared.preferences.colorFontDefault;
+            }
+            else
+            {
+                turnOnContainerInvisibility();
+                ccHistoryViewer.Visible = true;
+                ccHistoryButton.ForeColor = Shared.preferences.colorAccent2;
+                ResizeComponents();
+            }
         }
 
         private void CcTextInstructions_LinkClicked(object sender, LinkClickedEventArgs e)
@@ -797,8 +843,13 @@ namespace Lyre
 
         private void turnOnContainerInvisibility()
         {
+            // All of the main container control panels
             ccDownloadsContainer.Visible = false;
             ccSettingsContainer.Visible = false;
+            if(ccHistoryViewer != null)
+            {
+                ccHistoryViewer.Visible = false;
+            }
         }
 
         private void CcDownloadsDirectory_Click(object sender, EventArgs e)
@@ -851,6 +902,14 @@ namespace Lyre
             ccSettingsContainer.Width = ccContainer.Width;
             ccSettingsContainer.Height = ccContainer.Height - ccTopBar.Height;
 
+            if (ccHistoryViewer != null && ccHistoryViewer.Visible)
+            {
+                ccHistoryViewer.Top = ccTopBar.Top + ccTopBar.Height;
+                ccHistoryViewer.Left = 0;
+                ccHistoryViewer.Width = ccContainer.Width;
+                ccHistoryViewer.Height = ccContainer.Height - ccTopBar.Height;
+            }
+
             ccSettingsPanel.Top = 50;
             //ccSettingsPanel.MaximumSize = new Size(800, ccSettingsPanel.Height); // resizing issues...
             ccSettingsPanel.Width = 800; //Math.Min(800, ccSettingsContainer.Width - 30); //800;
@@ -894,6 +953,10 @@ namespace Lyre
             ccVideoQuality.Top = barMargin;
             ccVideoQuality.Left = ccSettingsButton.Left + ccSettingsButton.Width + barMargin;
             ccVideoQuality.Height = ccFormClose.Height;
+
+            ccHistoryButton.Top = barMargin - 3;
+            ccHistoryButton.Left = ccTopBar.Width - ccHistoryButton.Width - barMargin + 3;
+            ccHistoryButton.Height = ccFormClose.Height;
 
             // status bar
             ccStatusBar.Top = 50; // ccSettingsButton.Top + ccSettingsButton.Height + barMargin;
