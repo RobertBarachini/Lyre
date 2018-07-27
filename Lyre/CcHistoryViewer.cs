@@ -77,45 +77,35 @@ public class CcHistoryViewer : CcPanel
     // Add missing controls
     private void addMissingHiControls()
     {
+        LinkedList<HistoryItem> intermediateList = new LinkedList<HistoryItem>();
         int added = 0;
+
         lock (historyListLock)
         {
-            if(Shared.history.Count == 0)
-            {
-                return;
-            }
-
-            HistoryItem currentFirst;
-            if (hiControls.Count == 0)
-            {
-                currentFirst = null;
-            }
-            else
-            {
-                currentFirst = hiControls.First.Value.getHistoryItem();
-            }
-
+            added = Shared.history.Count - hiControls.Count;
+            int counter = 0;
             foreach (HistoryItem hi in Shared.history)
             {
-                // Only add new components
-                // On init loads all history items
-                // On refresh adds only new downloaded items
-                if(/*currentFirst != null &&*/ hi == currentFirst /*|| hiControls.Count >= 50*/)
+                if(counter >= added)
                 {
                     break;
                 }
 
-                CcHistoryItemContainer newHi = new CcHistoryItemContainer(hi)
-                {
-                    Parent = this
-                };
-                Controls.Add(newHi);
-
-                hiControls.AddLast(newHi);
-
-                added++;
-                Application.DoEvents();
+                counter++;
+                intermediateList.AddFirst(hi);
             }
+        }
+
+        foreach(HistoryItem hi in intermediateList)
+        {
+            CcHistoryItemContainer newHi = new CcHistoryItemContainer(hi)
+            {
+                Parent = this
+            };
+
+            Controls.Add(newHi);
+            hiControls.AddFirst(newHi);
+            Application.DoEvents();
         }
 
         if (added > 0)
@@ -159,6 +149,8 @@ public class CcHistoryViewer : CcPanel
                 hi.ResizeComponents();
 
                 counter++;
+
+                Application.DoEvents();
             }
         }
 

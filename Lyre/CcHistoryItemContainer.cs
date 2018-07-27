@@ -30,6 +30,7 @@ public class CcHistoryItemContainer : CcPanel
     private void InitComponents()
     {
         BackColor = Shared.preferences.colorBackground;
+        DoubleBuffered = true;
 
         ccThumbnail = new PictureBox()
         {
@@ -87,6 +88,8 @@ public class CcHistoryItemContainer : CcPanel
 
     public void ResizeComponents()
     {
+        SuspendLayout();
+
         ccThumbnail.Height = Height;
         ccThumbnail.Width = (ccThumbnail.Height / 9) * 16;
         ccThumbnail.Left = Width - ccThumbnail.Width;
@@ -96,5 +99,7 @@ public class CcHistoryItemContainer : CcPanel
         ccTitle.Top = 15;
         ccTitle.Width = Width - ccThumbnail.Width - Left - ccTitle.Left;
         ccTitle.Height = 50;
+
+        ResumeLayout();
     }
 }
