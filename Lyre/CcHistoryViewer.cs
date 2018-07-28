@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -36,6 +37,7 @@ public class CcHistoryViewer : CcPanel
         VisibleChanged += CcHistoryViewer_VisibleChanged;
         DoubleBuffered = true;
         AutoScroll = true;
+        //Scroll += CcHistoryViewer_Scroll;
 
         ccSearchContainer = new CcPanel()
         {
@@ -213,11 +215,18 @@ public class CcHistoryViewer : CcPanel
 
     private void ResizeComponents()
     {
-        if(Visible == false)
+        if (Visible == false)
         {
             return;
         }
-
+        
+        // My solution to the Panel AutoScroll problem
+        // Each time the AutoScrollPosition is not at (0,0) the size of the scroll margin
+        // seems to increase by the same amount as the AutoScrollPosition value
+        // Workaround forces AutoScrollPosition to (0,0) and after resizing the Panel
+        // renews the AutoScrollPosition from the state obtained before the resize.
+        Point scrollAuto = AutoScrollPosition;
+        AutoScrollPosition = new Point(0, 0);
         SuspendLayout();
 
         int counter = 0;
@@ -237,7 +246,6 @@ public class CcHistoryViewer : CcPanel
         ccSearch.Top = (ccSearchContainer.Height - ccSearch.Height) / 2;
 
         int topPoint = ccSearchContainer.Top + ccSearchContainer.Height + bottomMargin; //50;
-        
 
         foreach(CcHistoryItemContainer hi in hiControls)
         {
@@ -257,5 +265,17 @@ public class CcHistoryViewer : CcPanel
         }
 
         ResumeLayout();
+        AutoScrollPosition = new Point(Math.Abs(scrollAuto.X), Math.Abs(scrollAuto.Y));
+        //Shared.mainForm.Text = scrollAuto.X.ToString() + ";" + scrollAuto.Y.ToString();
     }
+
+    //private void CcHistoryViewer_Scroll(object sender, ScrollEventArgs e)
+    //{
+    //    Shared.mainForm.Text = VerticalScroll.Value.ToString() + ";" + HorizontalScroll.Value.ToString();
+    //}
+
+    // AutoScroll issue workaround idea
+    // I actually changed it a bit to make it better
+    // Used in 'private void ResizeComponents()'
+    // https://support.microsoft.com/en-us/help/829417/the-scroll-position-is-not-maintained-in-an-auto-scrollable-panel-cont
 }

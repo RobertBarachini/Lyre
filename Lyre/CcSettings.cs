@@ -598,6 +598,11 @@ namespace Lyre
 
         private void resizeComponents()
         {
+            // Solves the scrolling bug
+            Point scrollAuto = AutoScrollPosition;
+            AutoScrollPosition = new Point(0, 0);
+            SuspendLayout();
+
             int bottomMargin = 30;
             int bottomMarginM = 20;
 
@@ -749,6 +754,9 @@ namespace Lyre
             ccBottomMargin.Width = 1;
             ccBottomMargin.Left = ccContainerFiles.Left;
             ccBottomMargin.Top = ccLabelUpdate.Top + ccLabelUpdate.Height + 100;
+
+            ResumeLayout();
+            AutoScrollPosition = new Point(Math.Abs(scrollAuto.X), Math.Abs(scrollAuto.Y));
         }
     }
 }

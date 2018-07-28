@@ -389,6 +389,7 @@ namespace Lyre
             };
             ccDownloadsContainer.KeyDown += Paste_KeyDown;
             ccDownloadsContainer.KeyUp += Paste_KeyUp;
+            ccDownloadsContainer.SizeChanged += CcDownloadsContainer_SizeChanged;
             ccContainer.Controls.Add(ccDownloadsContainer);
 
             ccSettingsContainer = new CcPanel()
@@ -397,6 +398,7 @@ namespace Lyre
                 BackColor = Shared.preferences.colorForeground,
                 AutoScroll = true
             };
+            ccSettingsContainer.SizeChanged += CcSettingsContainer_SizeChanged;
             ccContainer.Controls.Add(ccSettingsContainer);
 
             ccSettingsPanel = new CcSettings()
@@ -652,6 +654,91 @@ namespace Lyre
             // Show the desired container - downloadsContainer is default
             turnOnContainerInvisibility();
             ccDownloadsContainer.Visible = true;
+        }
+
+        private void CcDownloadsContainer_SizeChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                // This solves AutoScroll issue
+                CcPanel whichControl = ccDownloadsContainer;
+                Point scrollAuto = whichControl.AutoScrollPosition;
+                whichControl.AutoScrollPosition = new Point(0, 0);
+                whichControl.SuspendLayout();
+
+                // status bar
+                ccStatusBar.Top = 50; // ccSettingsButton.Top + ccSettingsButton.Height + barMargin;
+                ccStatusBar.Height = 70;
+                ccStatusBar.Left = 50;
+                ccStatusBar.Width = ccContainer.Width - (2 * ccStatusBar.Left);
+
+                ccDownloadsText.Top = 18;
+                ccDownloadsValue.Top = ccDownloadsText.Top;
+                ccActiveDownloadsText.Top = ccDownloadsText.Top;
+                ccActiveDownloadsValue.Top = ccDownloadsText.Top;
+                ccDownloadsText.Left = 30;
+                ccDownloadsValue.Left = ccDownloadsText.Left + ccDownloadsText.Width + 5;
+                ccActiveDownloadsText.Left = ccDownloadsValue.Left + ccDownloadsValue.Width + 30;
+                ccActiveDownloadsValue.Left = ccActiveDownloadsText.Left + ccActiveDownloadsText.Width + 5;
+                ccDownloadsText.Height = ccStatusBar.Height;
+                ccDownloadsValue.Height = ccDownloadsText.Height;
+                ccActiveDownloadsText.Height = ccDownloadsText.Height;
+                ccActiveDownloadsValue.Height = ccDownloadsText.Height;
+
+                ccCanConvert.Top = ccDownloadsText.Top;
+                ccCanConvert.Width = 70;
+                ccCanConvert.Left = ccStatusBar.Width - ccCanConvert.Width - 30;
+                ccCanConvert.Height = ccStatusBar.Height - (2 * ccCanConvert.Top);
+
+                ccCanConvertText.Top = ccDownloadsText.Top;
+                ccCanConvertText.Left = ccCanConvert.Left - 180;
+
+
+                ccPanelInstructions.Top = ccStatusBar.Top + ccStatusBar.Height + 50;
+                ccPanelInstructions.Left = ccStatusBar.Left;
+                ccPanelInstructions.Width = ccStatusBar.Width;
+                ccPanelInstructions.Height = 500;
+
+                ccTextInstructions.Top = 30;
+                ccTextInstructions.Left = 30;
+                ccTextInstructions.Width = ccTextInstructions.Parent.Width - (2 * ccTextInstructions.Left);
+                ccTextInstructions.Height = ccTextInstructions.Parent.Height - (2 * ccTextInstructions.Top);
+
+                // download containers
+                if (DownloadContainer.getDownloadsAccess().Count > 0)
+                {
+                    resizeDcMain();
+                }
+
+                whichControl.ResumeLayout();
+                whichControl.AutoScrollPosition = new Point(Math.Abs(scrollAuto.X), Math.Abs(scrollAuto.Y));
+            }
+            catch(Exception ex) { }
+        }
+
+        private void CcSettingsContainer_SizeChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                // This solves AutoScroll issue
+                CcPanel whichControl = ccSettingsContainer;
+                Point scrollAuto = whichControl.AutoScrollPosition;
+                whichControl.AutoScrollPosition = new Point(0, 0);
+                whichControl.SuspendLayout();
+
+                ccSettingsPanel.Top = 50;
+                //ccSettingsPanel.MaximumSize = new Size(800, ccSettingsPanel.Height); // resizing issues...
+                ccSettingsPanel.Width = 800; //Math.Min(800, ccSettingsContainer.Width - 30); //800;
+                ccSettingsPanel.Left = Math.Max(0, (ccSettingsContainer.Width - ccSettingsPanel.Width) / 2);
+                //this.Text = ccSettingsContainer.Width + "/" + ccSettingsPanel.Width;
+
+                ccSettingsBottomMargin.Top = ccSettingsPanel.Top + ccSettingsPanel.Height + 50;
+                ccSettingsBottomMargin.Height = 1;
+
+                whichControl.ResumeLayout();
+                whichControl.AutoScrollPosition = new Point(Math.Abs(scrollAuto.X), Math.Abs(scrollAuto.Y));
+            }
+            catch(Exception ex) { }
         }
 
         private void CcHistoryButton_Click(object sender, EventArgs e)
@@ -911,15 +998,6 @@ namespace Lyre
                 ccHistoryViewer.Height = ccContainer.Height - ccTopBar.Height;
             }
 
-            ccSettingsPanel.Top = 50;
-            //ccSettingsPanel.MaximumSize = new Size(800, ccSettingsPanel.Height); // resizing issues...
-            ccSettingsPanel.Width = 800; //Math.Min(800, ccSettingsContainer.Width - 30); //800;
-            ccSettingsPanel.Left = Math.Max(0, (ccSettingsContainer.Width - ccSettingsPanel.Width) / 2);
-            //this.Text = ccSettingsContainer.Width + "/" + ccSettingsPanel.Width;
-
-            ccSettingsBottomMargin.Top = ccSettingsPanel.Top + ccSettingsPanel.Height + 50;
-            ccSettingsBottomMargin.Height = 1;
-
             int barMargin = 10;
             ccFormClose.Top = barMargin;
             ccFormClose.Height = ccTopBar.Height - (ccFormClose.Top * 2);
@@ -958,50 +1036,6 @@ namespace Lyre
             ccHistoryButton.Top = barMargin - 3;
             ccHistoryButton.Left = ccTopBar.Width - ccHistoryButton.Width - barMargin + 3;
             ccHistoryButton.Height = ccFormClose.Height;
-
-            // status bar
-            ccStatusBar.Top = 50; // ccSettingsButton.Top + ccSettingsButton.Height + barMargin;
-            ccStatusBar.Height = 70;
-            ccStatusBar.Left = 50;
-            ccStatusBar.Width = ccContainer.Width - (2 * ccStatusBar.Left);
-
-            ccDownloadsText.Top = 18;
-            ccDownloadsValue.Top = ccDownloadsText.Top;
-            ccActiveDownloadsText.Top = ccDownloadsText.Top;
-            ccActiveDownloadsValue.Top = ccDownloadsText.Top;
-            ccDownloadsText.Left = 30;
-            ccDownloadsValue.Left = ccDownloadsText.Left + ccDownloadsText.Width + 5;
-            ccActiveDownloadsText.Left = ccDownloadsValue.Left + ccDownloadsValue.Width + 30;
-            ccActiveDownloadsValue.Left = ccActiveDownloadsText.Left + ccActiveDownloadsText.Width + 5;
-            ccDownloadsText.Height = ccStatusBar.Height;
-            ccDownloadsValue.Height = ccDownloadsText.Height;
-            ccActiveDownloadsText.Height = ccDownloadsText.Height;
-            ccActiveDownloadsValue.Height = ccDownloadsText.Height;
-
-            ccCanConvert.Top = ccDownloadsText.Top;
-            ccCanConvert.Width = 70;
-            ccCanConvert.Left = ccStatusBar.Width - ccCanConvert.Width - 30;
-            ccCanConvert.Height = ccStatusBar.Height - (2 * ccCanConvert.Top);
-
-            ccCanConvertText.Top = ccDownloadsText.Top;
-            ccCanConvertText.Left = ccCanConvert.Left - 180;
-
-
-            ccPanelInstructions.Top = ccStatusBar.Top + ccStatusBar.Height + 50;
-            ccPanelInstructions.Left = ccStatusBar.Left;
-            ccPanelInstructions.Width = ccStatusBar.Width;
-            ccPanelInstructions.Height = 500;
-
-            ccTextInstructions.Top = 30;
-            ccTextInstructions.Left = 30;
-            ccTextInstructions.Width = ccTextInstructions.Parent.Width - (2 * ccTextInstructions.Left);
-            ccTextInstructions.Height = ccTextInstructions.Parent.Height - (2 * ccTextInstructions.Top);
-
-            // download containers
-            if (DownloadContainer.getDownloadsAccess().Count > 0)
-            {
-                resizeDcMain();
-            }
 
             this.ResumeLayout();
         }

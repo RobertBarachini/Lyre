@@ -113,8 +113,18 @@ public class SharedFunctions // Common functions for entire Lyre solution
             .Replace(":", "")
             .Replace(".", "")
             .Replace(",", "")
+            .Replace(";", "")
             .Replace("-", "")
-            .Replace("'", "");
+            .Replace("_", "")
+            .Replace("'", "")
+            .Replace("(", "")
+            .Replace(")", "")
+            .Replace("&", "")
+            .Replace("/", "")
+            .Replace("\\", "")
+            .Replace("[", "")
+            .Replace("]", "")
+            .Replace("|", "");
     }
 
     public static string getExtension(string input)
