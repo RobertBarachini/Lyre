@@ -962,6 +962,15 @@ class DownloadContainer : CcPanel
                 IPicture albumArt = new Picture(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension));
                 soundFile.Tag.Pictures = new IPicture[1] { albumArt };
                 soundFile.Tag.Comment = videoID;
+                //soundFile.Tag.Artists = infoJSON.GetValue("fulltitle")
+                string titleToCut = infoJSON.GetValue("fulltitle").ToString();
+                if(titleToCut.Contains("-"))
+                {
+                    int pIndex = titleToCut.IndexOf("-");
+                    soundFile.Tag.Performers = new string[1] {titleToCut.Substring(0, pIndex).Trim()};
+                    titleToCut = titleToCut.Substring(pIndex + 1).Trim();
+                    soundFile.Tag.Title = titleToCut;
+                }
                 soundFile.Save();
             }
             catch (Exception ex) { }
