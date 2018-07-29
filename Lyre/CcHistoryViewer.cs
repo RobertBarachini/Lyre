@@ -25,7 +25,7 @@ public class CcHistoryViewer : CcPanel
         InitComponents();
 
         timerRefreshMissingHi = new Timer();
-        timerRefreshMissingHi.Interval = 1000;
+        timerRefreshMissingHi.Interval = 50;
         timerRefreshMissingHi.Tick += TimerRefreshMissingHi_Tick;
         timerRefreshMissingHi.Start();
     }
@@ -115,6 +115,11 @@ public class CcHistoryViewer : CcPanel
 
     private void TimerRefreshMissingHi_Tick(object sender, EventArgs e)
     {
+        if(timerRefreshMissingHi.Interval < 1000)
+        {
+            timerRefreshMissingHi.Interval = 1000;
+        }
+
         timerRefreshMissingHi.Stop();
 
         addMissingHiControls();

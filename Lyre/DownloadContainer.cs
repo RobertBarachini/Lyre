@@ -108,6 +108,7 @@ class DownloadContainer : CcPanel
     private Status status;
     private string dlOutputPath;
     private string outputPath;
+    private string thumbnailPath;
     private DateTime creationTime;
 
     public DownloadContainer()
@@ -500,9 +501,10 @@ class DownloadContainer : CcPanel
             string fileURL = infoJSON["thumbnails"].First["url"].ToString();
             imageExtension = SharedFunctions.getExtension(fileURL);
             string filename = infoJSON.GetValue("display_id").ToString();
+            thumbnailPath = Path.GetFullPath(Path.Combine(Shared.thumbnailsDirecotory, filename + imageExtension));
             this.thumbnail.Invoke((MethodInvoker)delegate
             {
-                thumbnail.Image = SharedFunctions.getImage(Path.Combine(Shared.preferences.tempDirectoy, filename + imageExtension));
+                thumbnail.Image = SharedFunctions.getImage(thumbnailPath/*Path.Combine(Shared.preferences.tempDirectoy, filename + imageExtension)*/);
             });
         }
         else
@@ -633,11 +635,25 @@ class DownloadContainer : CcPanel
             }
             else if (data.Contains("Writing thumbnail to: "))
             {
+                if(Directory.Exists(Shared.thumbnailsDirecotory) == false)
+                {
+                    Directory.CreateDirectory(Shared.thumbnailsDirecotory);
+                }
+
                 string fileURL = infoJSON["thumbnails"].First["url"].ToString();
                 imageExtension = SharedFunctions.getExtension(fileURL);
+
+                thumbnailPath = Path.GetFullPath(Path.Combine(Shared.thumbnailsDirecotory, videoID + imageExtension));
+
+                try
+                {
+                    System.IO.File.Move(Path.Combine(Shared.preferences.tempDirectoy, videoID) + imageExtension, thumbnailPath);
+                }
+                catch (Exception ex) { }
+
                 this.thumbnail.Invoke((MethodInvoker)delegate
                 {
-                    thumbnail.Image = SharedFunctions.getImage(Path.Combine(Shared.preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
+                    thumbnail.Image = SharedFunctions.getImage(thumbnailPath); //Path.Combine(Shared.preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
                 });
             }
             else if(data.Contains("[ffmpeg] Destination: "))
@@ -966,7 +982,7 @@ class DownloadContainer : CcPanel
             try
             {
                 TagLib.File soundFile = TagLib.File.Create(Path.Combine(Shared.preferences.tempDirectoy, videoID + ".mp3"));
-                IPicture albumArt = new Picture(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension));
+                IPicture albumArt = new Picture(thumbnailPath);
                 soundFile.Tag.Pictures = new IPicture[1] { albumArt };
                 soundFile.Tag.Comment = videoID;
                 //soundFile.Tag.Artists = infoJSON.GetValue("fulltitle")
@@ -1025,7 +1041,7 @@ class DownloadContainer : CcPanel
             HistoryItem hi = new HistoryItem()
             {
                 path_output = Path.GetFullPath(Path.Combine(destinationDirectory, outputFileName + extension)),
-                path_thumbnail = Path.GetFullPath(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension)),
+                path_thumbnail = thumbnailPath, // Path.GetFullPath(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension)),
                 title = infoJSON.GetValue("fulltitle").ToString(),
                 url = infoJSON.GetValue("webpage_url").ToString(),
                 time_created_UTC = creationTime//DateTime.UtcNow
@@ -1220,13 +1236,13 @@ class DownloadContainer : CcPanel
 
     private void Thumbnail_Click(object sender, EventArgs e)
     {
-        if (imageExtension == null)
+        if (thumbnailPath == null)
         {
             canAnimateThumbnail = !canAnimateThumbnail;
         }
         else
         {
-            Process.Start(Path.Combine(Shared.preferences.tempDirectoy, videoID) + imageExtension);
+            Process.Start(thumbnailPath);
         }
     }
 }
