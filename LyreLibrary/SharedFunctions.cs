@@ -127,6 +127,18 @@ public class SharedFunctions // Common functions for entire Lyre solution
             .Replace("|", "");
     }
 
+    public static string getDateTimeStamp(DateTime dt)
+    {
+        string stamp = "";
+        stamp = dt.Year.ToString().PadLeft(4, '0') + "_" 
+            + dt.Month.ToString().PadLeft(2, '0') + "_" 
+            + dt.Day.ToString().PadLeft(2, '0') + "_" 
+            + dt.Hour.ToString().PadLeft(2, '0') + "_" 
+            + dt.Minute.ToString().PadLeft(2, '0') + "_"
+            + dt.Second.ToString().PadLeft(2, '0');
+        return stamp;
+    }
+
     public static string getExtension(string input)
     {
         int index = input.LastIndexOf(".");

@@ -108,6 +108,7 @@ class DownloadContainer : CcPanel
     private Status status;
     private string dlOutputPath;
     private string outputPath;
+    private DateTime creationTime;
 
     public DownloadContainer()
     {
@@ -700,6 +701,7 @@ class DownloadContainer : CcPanel
         // Construct the start of mainJSON
         try
         {
+            creationTime = DateTime.UtcNow;
             constructMainJSON(0);
         }
         catch (Exception ex) { }
@@ -782,6 +784,11 @@ class DownloadContainer : CcPanel
 
     private void constructMainJSON(int stage)
     {
+        if(Directory.Exists(Shared.downloadsDataDirectory) == false)
+        {
+            Directory.CreateDirectory(Shared.downloadsDataDirectory);
+        }
+
         if (stage == 0)
         {
             mainJSON = new JObject();
@@ -855,11 +862,11 @@ class DownloadContainer : CcPanel
             propertyName = "tags";
             mainJSON.Add(propertyName, infoJSON.GetValue(propertyName));
             //////
-
+            propertyName = "creation_time";
+            mainJSON.Add(propertyName, creationTime);
         }
-
         string jsonString = JsonConvert.SerializeObject(mainJSON, Formatting.Indented);
-        System.IO.File.WriteAllText(Path.Combine(Shared.preferences.tempDirectoy, videoID + ".main.json"), jsonString);
+        System.IO.File.WriteAllText(Path.Combine(Shared.downloadsDataDirectory, SharedFunctions.getDateTimeStamp(creationTime) + " " + videoID + ".main.json"), jsonString);
     }
 
     private string duration;
@@ -1021,7 +1028,7 @@ class DownloadContainer : CcPanel
                 path_thumbnail = Path.GetFullPath(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension)),
                 title = infoJSON.GetValue("fulltitle").ToString(),
                 url = infoJSON.GetValue("webpage_url").ToString(),
-                time_created_UTC = DateTime.UtcNow
+                time_created_UTC = creationTime//DateTime.UtcNow
             };
 
             lock (Shared.lockHistory)

@@ -14,6 +14,7 @@ public class Shared // Common functions, variables for Lyre downloader project
     public static readonly string filenameHistory = "history.json";
     public static readonly string filenameDlQueue = "downloadsQueue.json";
     public static string filePreferences = "preferences.json";
+    public static string downloadsDataDirectory = "data";
     // debug mode - print process output, ...
     public static bool debugMode = false; // true = debug mode enabled
 
