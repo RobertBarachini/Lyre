@@ -84,7 +84,6 @@ class DownloadContainer : CcPanel
 
     private Uri url;
     private PictureBox thumbnail;
-    private Panel progressBar;
     private Label progressLabel;
     private Label title;
     private Panel cancelButton;
@@ -110,6 +109,7 @@ class DownloadContainer : CcPanel
     private string outputPath;
     private string thumbnailPath;
     private DateTime creationTime;
+    private DateTime timeRecentDownload;
 
     public DownloadContainer()
     {
@@ -184,6 +184,21 @@ class DownloadContainer : CcPanel
                 {
                     while (downloadsQueue.Count > 0)
                     {
+                        // Added bacuse youtube might be limiting downloads
+                        if (timeRecentDownload.Year == 1)
+                        {
+                            timeRecentDownload = DateTime.UtcNow;
+                        }
+                        else
+                        {
+                            DateTime timeNow = DateTime.UtcNow;
+                            if((timeNow - timeRecentDownload).TotalSeconds < Shared.preferences.secondsCooldown)
+                            {
+                                break;
+                            }
+                            timeRecentDownload = timeNow;
+                        }
+
                         DownloadContainer dc = downloadsQueue.First.Value;
                         downloadsQueue.RemoveFirst();
 
@@ -222,13 +237,11 @@ class DownloadContainer : CcPanel
         try
         {
             int widthSetup = this.Width - thumbnail.Width - this.Left - 75;
-            this.progressBar.Invoke((MethodInvoker)delegate
-            {
-                progressBar.Width = (int)((widthSetup) * newProgress);
-            });
+           
             this.progressLabel.Invoke((MethodInvoker)delegate
             {
                 progressLabel.Text = (newProgress * 100).ToString("0.0") + " %";
+                progressLabel.Width = (int)((widthSetup) * newProgress);
             });
         }
         catch (Exception ex)
@@ -284,17 +297,10 @@ class DownloadContainer : CcPanel
         title.Click += Title_Click;
         Controls.Add(title);
 
-        progressBar = new Panel()
-        {
-            Parent = this,
-            BackColor = Shared.preferences.colorAccent1
-        };
-        Controls.Add(progressBar);
-
         progressLabel = new Label()
         {
-            Parent = progressBar,
-            Dock = DockStyle.Fill,
+            Parent = this,
+            //Dock = DockStyle.Fill,
             ForeColor = Shared.preferences.colorFontDefault,
             BackColor = Shared.preferences.colorAccent1,
             TextAlign = ContentAlignment.MiddleCenter,
@@ -302,7 +308,7 @@ class DownloadContainer : CcPanel
             Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel)
         };
         progressLabel.Click += ProgressLabel_Click;
-        progressBar.Controls.Add(progressLabel);
+        Controls.Add(progressLabel);
 
         outputLog = new RichTextBox()
         {
@@ -452,10 +458,7 @@ class DownloadContainer : CcPanel
         {
             progressLabel.BackColor = Shared.preferences.colorAccent1;
         });
-        this.progressBar.Invoke((MethodInvoker)delegate
-        {
-            progressLabel.BackColor = Shared.preferences.colorAccent1;
-        });
+
         download_p(url.ToString(), destinationDirectory, canConvert);
     }
 
@@ -762,7 +765,7 @@ class DownloadContainer : CcPanel
         });
         this.title.Invoke((MethodInvoker)delegate
         {
-            this.title.Text = url.ToString();
+            this.title.Text = "Online: " + url.ToString();
         });
     }
 
@@ -791,7 +794,6 @@ class DownloadContainer : CcPanel
             this.progressLabel.Invoke((MethodInvoker)delegate
             {
                 progressLabel.BackColor = Shared.preferences.colorAccent3;
-                progressBar.BackColor = Shared.preferences.colorAccent3;
             });
             progress = 0;
             updateProgress(0);
@@ -1202,12 +1204,12 @@ class DownloadContainer : CcPanel
         thumbnail.Left = this.Width - thumbnail.Width;
         thumbnail.Top = 0;
 
-        progressBar.Height = 34;
-        progressBar.Left = 60;
-        progressBar.Width = (int)((widthSetup) * progress);
-        progressBar.Top = this.Height - progressBar.Height - 15 - 15;
+        progressLabel.Height = 34;
+        progressLabel.Left = 60;
+        progressLabel.Width = (int)((widthSetup) * progress);
+        progressLabel.Top = Height - progressLabel.Height - 15 - 15;
 
-        title.Left = progressBar.Left;
+        title.Left = progressLabel.Left;
         title.Top = 15;
         title.Width = widthSetup;
         title.Height = 50;

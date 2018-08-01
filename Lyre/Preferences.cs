@@ -51,4 +51,6 @@ public class Preferences // Preferences / Settings / Defaults
     public bool enableThumbnailAnimations = false;
     [JsonProperty]
     public bool canConvert = false;
+    [JsonProperty]
+    public int secondsCooldown = 10; // how long before downloading next video in queue
 }

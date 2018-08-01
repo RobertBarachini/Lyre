@@ -17,7 +17,7 @@ public class Shared // Common functions, variables for Lyre downloader project
     public static string downloadsDataDirectory = "data";
     public static string thumbnailsDirecotory = "thumbnails";
     // debug mode - print process output, ...
-    public static bool debugMode = false; // true = debug mode enabled
+    public static bool debugMode = true; // true = debug mode enabled
 
     // shared preferences variable
     public static Preferences preferences = new Preferences(); // preferences object
