@@ -177,6 +177,7 @@ public class CcHistoryViewer : CcPanel
         {
             //filterVisible("mix");
             ResizeComponents();
+            GC.Collect();
         }
 
         //Shared.mainForm.Text = hiControls.Count.ToString();

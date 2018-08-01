@@ -76,6 +76,14 @@ public class SharedFunctions // Common functions for entire Lyre solution
         }
     }
 
+    public static Bitmap resizeImage(Image source)
+    {
+        double height = 144; // 144p
+        double multi = source.Height / height;
+        double width = source.Width / multi;
+        return new Bitmap(source, new Size((int)width, (int)height));
+    }
+
     public static string getVideoID(string url)
     {
         int index = url.IndexOf("watch?v=");

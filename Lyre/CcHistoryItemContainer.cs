@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -60,7 +61,20 @@ public class CcHistoryItemContainer : CcPanel
     {
         try
         {
-            ccThumbnail.Image = SharedFunctions.getImage(Path.Combine(historyItem.path_thumbnail));
+            string pathSmall = Path.GetFileNameWithoutExtension(historyItem.path_thumbnail) + "_144" + ".jpg"/*Path.GetExtension(historyItem.path_thumbnail)*/;
+            pathSmall = Path.Combine(Path.GetDirectoryName(historyItem.path_thumbnail), pathSmall);
+            Image img;
+            if(File.Exists(pathSmall) == false)
+            {
+                img = SharedFunctions.resizeImage(SharedFunctions.getImage(historyItem.path_thumbnail));
+                img.Save(pathSmall);
+            }
+            else
+            {
+                img = SharedFunctions.getImage(pathSmall);
+            }
+
+            ccThumbnail.Image = img;
         }
         catch (Exception ex)
         {
