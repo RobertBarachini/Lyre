@@ -507,7 +507,8 @@ class DownloadContainer : CcPanel
             thumbnailPath = Path.GetFullPath(Path.Combine(Shared.thumbnailsDirecotory, filename + imageExtension));
             this.thumbnail.Invoke((MethodInvoker)delegate
             {
-                thumbnail.Image = SharedFunctions.getImage(thumbnailPath/*Path.Combine(Shared.preferences.tempDirectoy, filename + imageExtension)*/);
+                //thumbnail.Image = SharedFunctions.getImage(thumbnailPath/*Path.Combine(Shared.preferences.tempDirectoy, filename + imageExtension)*/);
+                thumbnail.Image = SharedFunctions.getThumbnail(thumbnailPath);
             });
         }
         else
@@ -656,7 +657,8 @@ class DownloadContainer : CcPanel
 
                 this.thumbnail.Invoke((MethodInvoker)delegate
                 {
-                    thumbnail.Image = SharedFunctions.getImage(thumbnailPath); //Path.Combine(Shared.preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
+                    //thumbnail.Image = SharedFunctions.getImage(thumbnailPath); //Path.Combine(Shared.preferences.tempDirectoy, infoJSON.GetValue("display_id").ToString() + imageExtension));
+                    thumbnail.Image = SharedFunctions.getThumbnail(thumbnailPath);
                 });
             }
             else if(data.Contains("[ffmpeg] Destination: "))

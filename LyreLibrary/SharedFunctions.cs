@@ -6,6 +6,7 @@ using System.Threading;
 using System.Drawing;
 
 using Newtonsoft.Json;
+using System.Drawing.Imaging;
 
 public class SharedFunctions // Common functions for entire Lyre solution
 {
@@ -82,6 +83,82 @@ public class SharedFunctions // Common functions for entire Lyre solution
         double multi = source.Height / height;
         double width = source.Width / multi;
         return new Bitmap(source, new Size((int)width, (int)height));
+    }
+
+    public static bool saveJpeg(Image source, string path, long quality)
+    {
+        try
+        {
+            quality = limitLong(quality, 0, 100);
+
+            // https://docs.microsoft.com/en-us/dotnet/framework/winforms/advanced/how-to-set-jpeg-compression-level
+
+            ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
+
+            Encoder myEncoder = Encoder.Quality;
+            EncoderParameters myEncoderParameters = new EncoderParameters(1);
+
+            EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, quality); // quality 0 = most compression
+            myEncoderParameters.Param[0] = myEncoderParameter;
+            source.Save(path, jpgEncoder, myEncoderParameters);
+
+            return true;
+        }
+        catch(Exception ex)
+        {
+            return false;
+        }
+    }
+
+    public static Image getThumbnail(string thumbnailPath)
+    {
+        try
+        {
+            string pathSmall = Path.GetFileNameWithoutExtension(thumbnailPath) + "_144" + ".jpg"/*Path.GetExtension(historyItem.path_thumbnail)*/;
+            pathSmall = Path.Combine(Path.GetDirectoryName(thumbnailPath), pathSmall);
+            Image img;
+            if (File.Exists(pathSmall) == false)
+            {
+                img = resizeImage(SharedFunctions.getImage(thumbnailPath));
+                saveJpeg(img, pathSmall, 75);
+            }
+            else
+            {
+                img = getImage(pathSmall);
+            }
+
+            return img;
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
+    }
+
+    public static long limitLong(long input, long lowerBound, long upperBound)
+    {
+        if(input < lowerBound)
+        {
+            input = lowerBound;
+        }
+        if(input > upperBound)
+        {
+            input = upperBound;
+        }
+        return input;
+    }
+
+    public static ImageCodecInfo GetEncoder(ImageFormat format)
+    {
+        ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+        foreach (ImageCodecInfo codec in codecs)
+        {
+            if (codec.FormatID == format.Guid)
+            {
+                return codec;
+            }
+        }
+        return null;
     }
 
     public static string getVideoID(string url)

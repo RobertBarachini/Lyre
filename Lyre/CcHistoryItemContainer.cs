@@ -42,7 +42,9 @@ public class CcHistoryItemContainer : CcPanel
         };
         ccThumbnail.Click += CcThumbnail_Click; ;
         Controls.Add(ccThumbnail);
-        setThumbnail();
+
+        //setThumbnail();
+        ccThumbnail.Image = SharedFunctions.getThumbnail(historyItem.path_thumbnail);
 
         ccTitle = new Label()
         {
@@ -55,31 +57,6 @@ public class CcHistoryItemContainer : CcPanel
         };
         ccTitle.Click += CcTitle_Click; ;
         Controls.Add(ccTitle);
-    }
-
-    private void setThumbnail()
-    {
-        try
-        {
-            string pathSmall = Path.GetFileNameWithoutExtension(historyItem.path_thumbnail) + "_144" + ".jpg"/*Path.GetExtension(historyItem.path_thumbnail)*/;
-            pathSmall = Path.Combine(Path.GetDirectoryName(historyItem.path_thumbnail), pathSmall);
-            Image img;
-            if(File.Exists(pathSmall) == false)
-            {
-                img = SharedFunctions.resizeImage(SharedFunctions.getImage(historyItem.path_thumbnail));
-                img.Save(pathSmall);
-            }
-            else
-            {
-                img = SharedFunctions.getImage(pathSmall);
-            }
-
-            ccThumbnail.Image = img;
-        }
-        catch (Exception ex)
-        {
-            //ccThumbnail.BackColor = Color.Lime;
-        }
     }
 
     private void CcThumbnail_Click(object sender, EventArgs e)
