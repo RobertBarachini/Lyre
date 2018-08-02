@@ -7,6 +7,7 @@ using System.Drawing;
 
 using Newtonsoft.Json;
 using System.Drawing.Imaging;
+using System.Text.RegularExpressions;
 
 public class SharedFunctions // Common functions for entire Lyre solution
 {
@@ -173,6 +174,11 @@ public class SharedFunctions // Common functions for entire Lyre solution
             url = url.Substring(index + "watch?v=".Length);
             return url;
         }
+    }
+
+    public static bool isLegitID(string id)
+    {
+        return new Regex("[0-9A-Za-z_-]{10}[048AEIMQUYcgkosw]").IsMatch(id);
     }
 
     public static string getValidFileName(string filename)

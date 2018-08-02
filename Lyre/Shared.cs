@@ -112,6 +112,8 @@ public class Shared // Common functions, variables for Lyre downloader project
         return downloadsUnfinished;
     }
 
+    public static string instructionsBasic = @"Copy a YouTube link and press 'ctrl + v' anywhere inside this program to start the download.";
+
     public static string instructions = @"General directions
 
 To use the downloader section of the program you can copy and paste YouTube links (or text containing links) anywhere inside the program. If the links are registered, the download should start.

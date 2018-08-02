@@ -55,8 +55,25 @@ public class CcHistoryItemContainer : CcPanel
             Font = new Font(Shared.preferences.fontDefault.FontFamily, 22, GraphicsUnit.Pixel),
             Cursor = Cursors.Hand
         };
-        ccTitle.Click += CcTitle_Click; ;
+        //ccTitle.Click += CcTitle_Click;
+        ccTitle.MouseClick += CcTitle_MouseClick;
         Controls.Add(ccTitle);
+    }
+
+    private void CcTitle_MouseClick(object sender, MouseEventArgs e)
+    {
+        try
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                Process.Start(historyItem.path_output);
+            }
+            else if(e.Button == MouseButtons.Right)
+            {
+                Process.Start(historyItem.url);
+            }
+        }
+        catch (Exception ex) { }
     }
 
     private void CcThumbnail_Click(object sender, EventArgs e)
@@ -68,14 +85,14 @@ public class CcHistoryItemContainer : CcPanel
         catch (Exception ex) { }
     }
 
-    private void CcTitle_Click(object sender, EventArgs e)
-    {
-        try
-        {
-            Process.Start(historyItem.path_output);
-        }
-        catch (Exception ex) { }
-    }
+    //private void CcTitle_Click(object sender, EventArgs e)
+    //{
+    //    try
+    //    {
+    //        Process.Start(historyItem.path_output);
+    //    }
+    //    catch (Exception ex) { }
+    //}
 
     public void ResizeComponents()
     {

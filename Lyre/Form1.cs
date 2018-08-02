@@ -90,7 +90,7 @@ namespace Lyre
         {
             Shared.mainForm = this;
 
-            noPreferencesFound = File.Exists(Shared.filePreferences);
+            noPreferencesFound = ! File.Exists(Shared.filePreferences);
 
             resourcesMissingCount = SharedFunctions.getResourcesMissingCount(OnlineResource.resourcesListDownloader);
             try // if a dll is missing
@@ -180,6 +180,11 @@ namespace Lyre
             int downloadsUnfinished = Shared.getUnfinishedDownloadsCount();
             int maximumControls = Shared.preferences.maxDownloadContainerControls;
             int maximumActive = Shared.preferences.maxActiveProcesses;
+
+            if(downloadsUnfinished > 0)
+            {
+                ccPanelInstructions.Visible = false;
+            }
 
             ccDownloadsValue.Text = downloadsUnfinished.ToString() + " / " + maximumControls.ToString();
             ccActiveDownloadsValue.Text = downloadsActive.ToString() + " / " + maximumActive.ToString();
@@ -503,10 +508,6 @@ namespace Lyre
             };
             ccPanelInstructions.BringToFront();
             ccDownloadsContainer.Controls.Add(ccPanelInstructions);
-            if (noPreferencesFound)
-            {
-                ccPanelInstructions.Visible = false;
-            }
 
             ccTextInstructions = new RichTextBox()
             {
@@ -520,6 +521,11 @@ namespace Lyre
             };
             ccTextInstructions.LinkClicked += CcTextInstructions_LinkClicked;
             ccPanelInstructions.Controls.Add(ccTextInstructions);
+
+            if (noPreferencesFound == false)
+            {
+                ccTextInstructions.Text = Shared.instructionsBasic;
+            }
 
 
             ccDownloadsText = new Label()
@@ -622,7 +628,7 @@ namespace Lyre
                 Cursor = Cursors.Hand,
                 Font = new Font(Shared.preferences.fontDefault.FontFamily, 24, GraphicsUnit.Pixel),
                 AutoSize = true,
-                Text = "Hi"
+                Text = "📥"//"💢"//"🎲"//"🔰"//"Hi"
             };
             ccHistoryButton.Click += CcHistoryButton_Click;
             ccTopBar.Controls.Add(ccHistoryButton);
@@ -694,10 +700,18 @@ namespace Lyre
                 ccCanConvertText.Left = ccCanConvert.Left - 180;
 
 
-                ccPanelInstructions.Top = ccStatusBar.Top + ccStatusBar.Height + 50;
                 ccPanelInstructions.Left = ccStatusBar.Left;
                 ccPanelInstructions.Width = ccStatusBar.Width;
-                ccPanelInstructions.Height = 500;
+                if (noPreferencesFound)
+                {
+                    ccPanelInstructions.Top = ccStatusBar.Top + ccStatusBar.Height + 50;
+                    ccPanelInstructions.Height = 500;
+                }
+                else
+                {
+                    ccPanelInstructions.Top = ccStatusBar.Top + ccStatusBar.Height + 30;
+                    ccPanelInstructions.Height = 90;
+                }
 
                 ccTextInstructions.Top = 30;
                 ccTextInstructions.Left = 30;
@@ -1114,21 +1128,45 @@ namespace Lyre
                 ccPanelInstructions.Visible = false;
 
                 // queue download url-s
-                string clipboardString = Clipboard.GetText();
+                string clipboardString = Clipboard.GetText().Replace("http://", "https://");
                 LinkedList<string> hits = new LinkedList<string>();
                 string pattern = "https://www.youtube.com/watch?v=";
+                // youtube video_IDs are currently 11 chars long
+                int idLen = 11;
+                string[] patterns = new string[] 
+                {
+                    "https://www.youtube.com/watch?v=",
+                    "https://www.youtube.com/embed/",
+                    "https://youtu.be/"
+                };
                 int counter = 0;
                 while (true)
                 {
-                    int index = clipboardString.IndexOf(pattern);
-                    if (index == -1)
+                    int index = -1; //clipboardString.IndexOf(pattern);
+                    for (int i = 0; i < patterns.Length; i++)
+                    {
+                        int index2 = clipboardString.IndexOf(patterns[i]);
+                        if (index2 != -1 && (index2 < index || index == -1))
+                        {
+                            index = index2;
+                            pattern = patterns[i];
+                        }
+                    }
+
+                    if (index == -1 || clipboardString.Length < pattern.Length + idLen)
                     {
                         break;
                     }
 
-                    // youtube video_IDs are currently 11 chars long
-                    string hit = clipboardString.Substring(index, pattern.Length + 11);
-                    clipboardString = clipboardString.Substring(index + pattern.Length + 11);
+                    string id = clipboardString.Substring(index + pattern.Length, idLen);
+
+                    if(SharedFunctions.isLegitID(id) == false)
+                    {
+                        break;
+                    }
+
+                    string hit = patterns[0] + id;
+                    clipboardString = clipboardString.Substring(index + pattern.Length + idLen);
                     if (clipboardString.Length >= "&list=".Length + 34 && clipboardString.Substring(0, "&list=".Length).Equals("&list=")) // 34 current list_ID length
                     {
                         //hit += clipboardString.Substring(0, "&list=".Length + 34);
