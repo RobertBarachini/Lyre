@@ -15,3 +15,11 @@ I have grown tired of other apps that do not fit my taste or ideas for various r
 My ultimate goal is to create an open-source all-in-one music app. The end product will consist of content downloaders, automatic ID3 tagging, music library and an advanced media player. The final app should play nicely with all music lovers, DJs and data hoarders. 
 
 If you have any further questions or suggestions please do not hesitate to contact me. I am always ready to learn more!
+
+## License
+
+Lyre - a more transparent music app
+
+Copyright (C) 2018  Robert Barachini & contributors
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
