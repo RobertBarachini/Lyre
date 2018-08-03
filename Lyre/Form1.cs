@@ -93,51 +93,63 @@ namespace Lyre
             noPreferencesFound = ! File.Exists(Shared.filePreferences);
 
             resourcesMissingCount = SharedFunctions.getResourcesMissingCount(OnlineResource.resourcesListDownloader);
-            try // if a dll is missing
-            {
-                loadSources();
-            }
-            catch(Exception ex)
-            {
-                //preferences = new Preferences();
-            }
-            InitComponents();
-            //try
-            //{
-            //    InitComponents();
-            //}
-            //catch(Exception ex)
-            //{
-            //    File.Delete(Shared.filePreferences);
-            //    //saveJSON(Shared.filePreferences, Shared.preferences);
-            //    //loadJSON(Shared.filePreferences, ref Shared.preferences);
-            //    loadSources();
-            //    InitComponents();
-            //}
-            if (resourcesMissingCount == 0)
-            {
-                loadDlQueue();
-            }
-            ResizeComponents();
-            //this.Show();
+
             if (resourcesMissingCount > 0)
             {
-                getResources();
+                //getResources();
+                try // if a dll is missing
+                {
+                    loadSources();
+                }
+                catch (Exception ex)
+                {
+                    //preferences = new Preferences();
+                }
+
+                InitComponentsMissing();
             }
-
-            timerStatusUpdater = new System.Windows.Forms.Timer()
+            else
             {
-                Interval = 1000
-            };
-            timerStatusUpdater.Tick += TimerStatusUpdater_Tick;
-            timerStatusUpdater.Start();
+                try // if a dll is missing
+                {
+                    loadSources();
+                }
+                catch (Exception ex)
+                {
+                    //preferences = new Preferences();
+                }
+                InitComponents();
+                //try
+                //{
+                //    InitComponents();
+                //}
+                //catch(Exception ex)
+                //{
+                //    File.Delete(Shared.filePreferences);
+                //    //saveJSON(Shared.filePreferences, Shared.preferences);
+                //    //loadJSON(Shared.filePreferences, ref Shared.preferences);
+                //    loadSources();
+                //    InitComponents();
+                //}
 
-            timerPreQueueHandler = new System.Windows.Forms.Timer()
-            {
-                Interval = 1000
-            };
-            timerPreQueueHandler.Tick += TimerPreQueueHandler_Tick;
-            timerPreQueueHandler.Start();
+                loadDlQueue();
+                ResizeComponents();
+                this.Show();
+
+                timerStatusUpdater = new System.Windows.Forms.Timer()
+                {
+                    Interval = 1000
+                };
+                timerStatusUpdater.Tick += TimerStatusUpdater_Tick;
+                timerStatusUpdater.Start();
+
+                timerPreQueueHandler = new System.Windows.Forms.Timer()
+                {
+                    Interval = 1000
+                };
+                timerPreQueueHandler.Tick += TimerPreQueueHandler_Tick;
+                timerPreQueueHandler.Start();
+            }
 
             this.BringToFront();
         }
@@ -291,6 +303,7 @@ namespace Lyre
             {
                 if(resourcesMissingCount == 0)
                 {
+                    ccResourceDownloaderLog.SelectionColor = Color.Lime;
                     ccResourceDownloaderLog.AppendText("Press 'ESCAPE' button to restart the app ..." + Environment.NewLine);
                     ccResourceDownloaderLog.ScrollToCaret();
                 }
@@ -353,29 +366,14 @@ namespace Lyre
 
         private void InitComponents()
         {
-            Text = "Lyre - A music app by Robert Barachini";
+            InitBasicComponents();
+
             FormClosing += Form1_FormClosing;
-            DoubleBuffered = true;
-            Width = Shared.preferences.formWidth;
-            Height = Shared.preferences.formHeight;
-            Top = Shared.preferences.formTop;
-            Height = Shared.preferences.formHeight;
             SizeChanged += Form1_SizeChanged;
             KeyDown += Paste_KeyDown;
             KeyUp += Paste_KeyUp;
-            BackColor = Color.Lime;//Shared.preferences.colorForeground;
-            //FormBorderStyle = FormBorderStyle.None;
             MouseMove += Form1_MouseMove;
             MouseDown += Form1_MouseDown;
-            KeyPreview = true;
-
-            ccContainer = new CcPanel()
-            {
-                Parent = this,
-                BackColor = Shared.preferences.colorForeground,
-                Dock = DockStyle.Fill
-            };
-            Controls.Add(ccContainer);
 
             ccTopBar = new CcPanel()
             {
@@ -633,33 +631,73 @@ namespace Lyre
             ccHistoryButton.Click += CcHistoryButton_Click;
             ccTopBar.Controls.Add(ccHistoryButton);
 
+            // Show the desired container - downloadsContainer is default
+            turnOnContainerInvisibility();
+            ccDownloadsContainer.Visible = true;
+        }
+
+        private void InitComponentsMissing()
+        {
+            InitBasicComponents();
+
             // Resource Downloader (debug oriented)
             ccResourceDownloaderLog = new RichTextBox()
             {
-                Parent = ccDownloadsContainer,
+                Parent = ccContainer,
                 BorderStyle = BorderStyle.None,
                 Dock = DockStyle.Fill,
                 BackColor = Shared.preferences.colorBackground,
                 ForeColor = Shared.preferences.colorFontDefault,
-                Font = new Font(Shared.preferences.fontDefault.FontFamily, 16, GraphicsUnit.Pixel),
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
                 ReadOnly = true
             };
             ccResourceDownloaderLog.KeyDown += CcResourceDownloaderLog_KeyDown;
             ccResourceDownloaderLog.LinkClicked += CcResourceDownloaderLog_LinkClicked;
-            ccDownloadsContainer.Controls.Add(ccResourceDownloaderLog);
-            if (resourcesMissingCount == 0)
+            ccContainer.Controls.Add(ccResourceDownloaderLog);
+
+            string singular = "components";
+            if(resourcesMissingCount == 1)
             {
-                ccResourceDownloaderLog.Visible = false;
-            }
-            else
-            {
-                ccStatusBar.Visible = false;
-                ccPanelInstructions.Visible = false;
+                singular = "component";
             }
 
-            // Show the desired container - downloadsContainer is default
-            turnOnContainerInvisibility();
-            ccDownloadsContainer.Visible = true;
+            ccResourceDownloaderLog.Text = "The program will download and install ";
+            ccResourceDownloaderLog.SelectionColor = Color.OrangeRed;
+            ccResourceDownloaderLog.AppendText(resourcesMissingCount.ToString());
+            ccResourceDownloaderLog.SelectionColor = Color.White;
+            ccResourceDownloaderLog.AppendText(" missing " + singular + "."
+                + Environment.NewLine + "Once the process is complete press '");
+            ccResourceDownloaderLog.SelectionColor = Color.Cyan;
+            ccResourceDownloaderLog.AppendText("esc");
+            ccResourceDownloaderLog.SelectionColor = Color.White;
+            ccResourceDownloaderLog.AppendText("' button to restart the program." + Environment.NewLine + Environment.NewLine
+                + "To start the download press the '");
+            ccResourceDownloaderLog.SelectionColor = Color.Cyan;
+            ccResourceDownloaderLog.AppendText("Enter");
+            ccResourceDownloaderLog.SelectionColor = Color.White;
+            ccResourceDownloaderLog.AppendText("' key ..." + Environment.NewLine + Environment.NewLine);
+        }
+
+        private void InitBasicComponents()
+        {
+
+            Text = "Lyre - A music app by Robert Barachini";
+            DoubleBuffered = true;
+            Width = Shared.preferences.formWidth;
+            Height = Shared.preferences.formHeight;
+            Top = Shared.preferences.formTop;
+            Height = Shared.preferences.formHeight;
+            BackColor = Color.Lime;//Shared.preferences.colorForeground;
+            //FormBorderStyle = FormBorderStyle.None;
+            KeyPreview = true;
+
+            ccContainer = new CcPanel()
+            {
+                Parent = this,
+                BackColor = Shared.preferences.colorForeground,
+                Dock = DockStyle.Fill
+            };
+            Controls.Add(ccContainer);
         }
 
         private void CcDownloadsContainer_SizeChanged(object sender, EventArgs e)
@@ -702,14 +740,14 @@ namespace Lyre
 
                 ccPanelInstructions.Left = ccStatusBar.Left;
                 ccPanelInstructions.Width = ccStatusBar.Width;
+                ccPanelInstructions.Top = ccStatusBar.Top + ccStatusBar.Height + 30;
+
                 if (noPreferencesFound)
                 {
-                    ccPanelInstructions.Top = ccStatusBar.Top + ccStatusBar.Height + 50;
-                    ccPanelInstructions.Height = 500;
+                    ccPanelInstructions.Height = 850;
                 }
                 else
                 {
-                    ccPanelInstructions.Top = ccStatusBar.Top + ccStatusBar.Height + 30;
                     ccPanelInstructions.Height = 90;
                 }
 
@@ -910,8 +948,12 @@ namespace Lyre
             Process.Start(e.LinkText);
         }
 
+        private bool obtainingMissingResources = false;
         private void CcResourceDownloaderLog_KeyDown(object sender, KeyEventArgs e)
         {
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+
             if(e.KeyCode == Keys.Escape)
             {
                 lock(resourcesMissingCountLock)
@@ -924,6 +966,14 @@ namespace Lyre
                         resourcesMissingCount = -1;
                         Application.Restart();
                     }
+                }
+            }
+            else if(e.KeyCode == Keys.Enter)
+            {
+                if(obtainingMissingResources == false)
+                {
+                    obtainingMissingResources = true;
+                    getResources();
                 }
             }
         }
@@ -1123,7 +1173,7 @@ namespace Lyre
         private bool copyPasteDown = false;
         private void Paste_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Control && e.KeyCode == Keys.V && copyPasteDown == false && ccResourceDownloaderLog.Visible == false)
+            if(e.Control && e.KeyCode == Keys.V && copyPasteDown == false)
             {
                 ccPanelInstructions.Visible = false;
 
