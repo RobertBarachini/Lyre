@@ -58,6 +58,7 @@ namespace Lyre
         // Instructions
         private CcPanel ccPanelInstructions;
         private RichTextBox ccTextInstructions;
+        private Label ccExpandInstructions;
 
         private object resourcesMissingCountLock = new object();
         private int resourcesMissingCount;
@@ -65,6 +66,7 @@ namespace Lyre
         private System.Windows.Forms.Timer timerStatusUpdater;
         private System.Windows.Forms.Timer timerPreQueueHandler;
         private bool noPreferencesFound;
+        private bool instructionsExpanded = false;
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -515,16 +517,23 @@ namespace Lyre
                 ReadOnly = true,
                 BorderStyle = BorderStyle.None,
                 Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
-                Text = Shared.instructions
+                Text = Shared.instructionsBasic
+                //ScrollBars = RichTextBoxScrollBars.None
             };
             ccTextInstructions.LinkClicked += CcTextInstructions_LinkClicked;
             ccPanelInstructions.Controls.Add(ccTextInstructions);
 
-            if (noPreferencesFound == false)
+            ccExpandInstructions = new Label()
             {
-                ccTextInstructions.Text = Shared.instructionsBasic;
-            }
-
+                Text = "More",
+                ForeColor = Shared.preferences.colorAccent2,
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel),
+                Cursor = Cursors.Hand,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            ccExpandInstructions.Paint += CcExpandInstructions_Paint;
+            ccExpandInstructions.Click += CcExpandInstructions_Click;
+            ccPanelInstructions.Controls.Add(ccExpandInstructions);
 
             ccDownloadsText = new Label()
             {
@@ -636,6 +645,38 @@ namespace Lyre
             ccDownloadsContainer.Visible = true;
         }
 
+        private void CcExpandInstructions_Click(object sender, EventArgs e)
+        {
+            instructionsExpanded = ! instructionsExpanded;
+            if(instructionsExpanded)
+            {
+                ccExpandInstructions.Text = "Less";
+                ccTextInstructions.Text = Shared.instructions;
+            }
+            else
+            {
+                ccExpandInstructions.Text = "More";
+                ccTextInstructions.Text = Shared.instructionsBasic;
+            }
+            // ResizeComponents() doesn't work here
+            FormWindowState fs = WindowState;
+            WindowState = FormWindowState.Normal;
+            Height = Height + 1;
+            Height = Height - 1;
+            WindowState = fs;
+        }
+
+        private void CcExpandInstructions_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+            // Background
+            Pen b1 = new Pen(Color.FromArgb(155, Shared.preferences.colorAccent2), 2);
+            e.Graphics.DrawRectangle(b1, 0, 0, ccExpandInstructions.Width - 1, ccExpandInstructions.Height - 1);
+
+            b1.Dispose();
+        }
+
         private void InitComponentsMissing()
         {
             InitBasicComponents();
@@ -667,12 +708,12 @@ namespace Lyre
             ccResourceDownloaderLog.SelectionColor = Color.White;
             ccResourceDownloaderLog.AppendText(" missing " + singular + "."
                 + Environment.NewLine + "Once the process is complete press '");
-            ccResourceDownloaderLog.SelectionColor = Color.Cyan;
+            ccResourceDownloaderLog.SelectionColor = Shared.preferences.colorAccent2;
             ccResourceDownloaderLog.AppendText("esc");
             ccResourceDownloaderLog.SelectionColor = Color.White;
             ccResourceDownloaderLog.AppendText("' button to restart the program." + Environment.NewLine + Environment.NewLine
                 + "To start the download press the '");
-            ccResourceDownloaderLog.SelectionColor = Color.Cyan;
+            ccResourceDownloaderLog.SelectionColor = Shared.preferences.colorAccent2;
             ccResourceDownloaderLog.AppendText("Enter");
             ccResourceDownloaderLog.SelectionColor = Color.White;
             ccResourceDownloaderLog.AppendText("' key ..." + Environment.NewLine + Environment.NewLine);
@@ -742,19 +783,32 @@ namespace Lyre
                 ccPanelInstructions.Width = ccStatusBar.Width;
                 ccPanelInstructions.Top = ccStatusBar.Top + ccStatusBar.Height + 30;
 
-                if (noPreferencesFound)
+                ccExpandInstructions.Width = 90;
+                ccExpandInstructions.Height = 40;
+
+                ccTextInstructions.Top = 30 + 3;
+
+                if (instructionsExpanded)
                 {
-                    ccPanelInstructions.Height = 850;
+                    ccTextInstructions.Top = 30;
+                    ccPanelInstructions.Height = 920;
+                    ccExpandInstructions.Left = (ccPanelInstructions.Width / 2) - (ccExpandInstructions.Width / 2);
+                    ccExpandInstructions.Top = ccPanelInstructions.Height - ccExpandInstructions.Height - 30;
+                    ccTextInstructions.Width = ccStatusBar.Width;
+                    ccTextInstructions.Width = ccTextInstructions.Parent.Width - (2 * ccTextInstructions.Left);
+                    ccTextInstructions.Height = ccTextInstructions.Parent.Height - (3 * 30) - ccExpandInstructions.Height;
                 }
                 else
                 {
                     ccPanelInstructions.Height = 90;
+                    ccExpandInstructions.Top = (ccPanelInstructions.Height / 2) - (ccExpandInstructions.Height / 2);
+                    ccExpandInstructions.Left = ccPanelInstructions.Width - ccExpandInstructions.Width - 30;
+                    ccTextInstructions.Width = ccTextInstructions.Parent.Width - (2 * ccTextInstructions.Left) - ccExpandInstructions.Width - 30;
+                    ccTextInstructions.Height = ccTextInstructions.Parent.Height - (2 * ccTextInstructions.Top - 3);
                 }
 
-                ccTextInstructions.Top = 30;
                 ccTextInstructions.Left = 30;
-                ccTextInstructions.Width = ccTextInstructions.Parent.Width - (2 * ccTextInstructions.Left);
-                ccTextInstructions.Height = ccTextInstructions.Parent.Height - (2 * ccTextInstructions.Top);
+                
 
                 // download containers
                 if (DownloadContainer.getDownloadsAccess().Count > 0)
@@ -1156,6 +1210,30 @@ namespace Lyre
 
             // this kills all DownloadContainer processes as well
             DownloadContainer.removeAllControls();
+
+            if (Shared.updatePressed)
+            {
+                try
+                {
+                    string updaterLoc = OnlineResource.LyreUpdaterLocation;
+                    string downloaderLoc = OnlineResource.LyreDownloaderLocation;
+
+                    // Problems with paths / descriptors?
+                    Directory.SetCurrentDirectory(OnlineResource.LyreUpdaterLocation);
+
+                    Process p = new Process();
+                    ProcessStartInfo ps = new ProcessStartInfo();
+                    ps.FileName = Path.Combine(OnlineResource.LyreDownloaderLocation, "updater\\LyreUpdater.exe");
+                    p.StartInfo = ps;
+                    p.Start();
+
+                    // Problems with paths / descriptors?
+                    //Directory.SetCurrentDirectory(downloaderLoc);
+                    //Shared.mainForm.Close();
+                    Application.Exit();
+                }
+                catch (Exception ex) { }
+            }
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)

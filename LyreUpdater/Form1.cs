@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Windows.Forms;
@@ -18,8 +19,10 @@ namespace LyreUpdater
         private Panel ccContainer;
         private RichTextBox ccMainLog;
 
-        int resourcesMissingCount = 0;
+        private int resourcesMissingCount = 0;
         private object resourcesMissingCountLock = new object();
+        private bool isDone = false;
+        private bool escPressed = false;
 
         public Form1()
         {
@@ -38,7 +41,7 @@ namespace LyreUpdater
                 Directory.CreateDirectory(Shared.tempDirectory);
             }
 
-            Text = OnlineResource.context;// + " ; " + Directory.GetCurrentDirectory();
+            //Text = OnlineResource.context;// + " ; " + Directory.GetCurrentDirectory();
 
             try
             {
@@ -52,9 +55,9 @@ namespace LyreUpdater
 
             BringToFront();
 
-            ccMainLog.AppendText(Environment.NewLine + "Context: " + OnlineResource.context + Environment.NewLine);
-            ccMainLog.AppendText("Updater folder: " + OnlineResource.LyreUpdaterLocation + Environment.NewLine);
-            ccMainLog.AppendText("Downloader folder: " + OnlineResource.LyreDownloaderLocation + Environment.NewLine + Environment.NewLine);
+            //ccMainLog.AppendText(Environment.NewLine + "Context: " + OnlineResource.context + Environment.NewLine);
+            //ccMainLog.AppendText("Updater folder: " + OnlineResource.LyreUpdaterLocation + Environment.NewLine);
+            //ccMainLog.AppendText("Downloader folder: " + OnlineResource.LyreDownloaderLocation + Environment.NewLine + Environment.NewLine);
 
             DownloadRemoteResourcesJson();
         }
@@ -63,11 +66,13 @@ namespace LyreUpdater
 
         private void InitComponents()
         {
-            //Text = "LyreUpdater - Updater for Lyre.exe";
+            Text = "LyreUpdater - Updater for Lyre.exe";
             FormClosing += Form1_FormClosing;
             BackColor = Shared.preferences.colorForeground;
-            Width = 800;
-            Height = 420;
+            //Width = 800;
+            //Height = 420;
+            Width = Shared.preferences.formWidth;
+            Height = Shared.preferences.formHeight;
             FormClosing += Form1_FormClosing1;
 
             ccContainer = new Panel
@@ -85,9 +90,27 @@ namespace LyreUpdater
                 ReadOnly = true,
                 BackColor = Shared.preferences.colorBackground,
                 ForeColor = Shared.preferences.colorFontDefault,
-                Font = Shared.preferences.fontDefault,
-                Text = "Lyre Updater" + Environment.NewLine
+                Font = new Font(Shared.preferences.fontDefault.FontFamily, 18, GraphicsUnit.Pixel),
+                Text = "Lyre Updater" + Environment.NewLine + Environment.NewLine
             };
+            ccMainLog.KeyDown += CcMainLog_KeyDown;
+            ccContainer.Controls.Add(ccMainLog);
+
+            ccMainLog.SelectAll();
+            ccMainLog.SelectionColor = Shared.preferences.colorAccent2;
+            ccMainLog.DeselectAll();
+            ccMainLog.SelectionColor = Shared.preferences.colorFontDefault;
+            ccMainLog.AppendText("Looking for updates ..." + Environment.NewLine + Environment.NewLine);
+        }
+
+        private void CcMainLog_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.KeyCode == Keys.Escape && isDone)
+            {
+                escPressed = true;
+
+                Application.Exit();
+            }
         }
 
         private void Form1_FormClosing1(object sender, FormClosingEventArgs e)
@@ -106,6 +129,20 @@ namespace LyreUpdater
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             saveSources();
+
+            if (escPressed)
+            {
+                try
+                {
+                    Directory.SetCurrentDirectory(OnlineResource.LyreDownloaderLocation);
+                    Process p = new Process();
+                    ProcessStartInfo ps = new ProcessStartInfo();
+                    ps.FileName = Path.Combine(OnlineResource.LyreDownloaderLocation, "Lyre.exe");
+                    p.StartInfo = ps;
+                    p.Start();
+                }
+                catch (Exception ex) { }
+            }
         }
 
         private void ResizeComponents()
@@ -144,7 +181,7 @@ namespace LyreUpdater
 
         private void DownloadRemoteResourcesJson()
         {
-            Text = OnlineResource.LyreUpdaterLocation;
+            //Text = OnlineResource.LyreUpdaterLocation;
             DownloaderAsync daResourcesList = new DownloaderAsync(new List<string> { Path.Combine(OnlineResource.LyreUpdaterLocation, Shared.tempDirectory, "remoteResources.json") });
             daResourcesList.MyDownloadCompleted += DaResourcesList_MyDownloadCompleted;
             daResourcesList.MyDownloadChanged += DaResourcesList_MyDownloadChanged;
@@ -187,7 +224,10 @@ namespace LyreUpdater
             }
             if(hits == 0)
             {
-                ccMainLog.AppendText("No new updates found..." + Environment.NewLine);
+                ccMainLog.SelectionColor = Shared.preferences.colorAccent2;
+                ccMainLog.AppendText("No new updates found..." + Environment.NewLine + Environment.NewLine);
+                ccMainLog.SelectionColor = Shared.preferences.colorFontDefault;
+                addLastMessage();
             }
         }
 
@@ -267,7 +307,9 @@ namespace LyreUpdater
                     ccMainLog.AppendText("All resources downloaded..." + Environment.NewLine);
                     ccMainLog.AppendText("Saving update log..." + Environment.NewLine);
                     ccMainLog.AppendText("Replacing resources.json..." + Environment.NewLine + Environment.NewLine);
-                    ccMainLog.AppendText("ALL DONE :)");
+                    ccMainLog.SelectionColor = Shared.preferences.colorAccent2;
+                    ccMainLog.AppendText("ALL DONE :)" + Environment.NewLine + Environment.NewLine);
+                    addLastMessage();                   
                     File.WriteAllText("lastUpdateLog.txt", ccMainLog.Text);
                     // replace the local resources list with the remote one
                     File.Create(Path.Combine(OnlineResource.LyreUpdaterLocation, "resources.json")).Close();
@@ -275,6 +317,16 @@ namespace LyreUpdater
                     ccMainLog.ScrollToCaret();
                 }
             }
+        }
+
+        private void addLastMessage()
+        {
+            isDone = true;
+            ccMainLog.AppendText("Press the '");
+            ccMainLog.SelectionColor = Shared.preferences.colorAccent2;
+            ccMainLog.AppendText("ESCAPE");
+            ccMainLog.SelectionColor = Shared.preferences.colorFontDefault;
+            ccMainLog.AppendText("' key to start Lyre.exe" + Environment.NewLine + Environment.NewLine);
         }
     }
 }

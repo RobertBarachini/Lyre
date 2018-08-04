@@ -454,14 +454,15 @@ namespace Lyre
             ccLabelUpdate = new Label()
             {
                 Parent = this,
-                BackColor = Shared.preferences.colorAccent6,
-                ForeColor = Shared.preferences.colorFontDefault,
+                //BackColor = Shared.preferences.colorAccent6,//Shared.preferences.colorAccent6,
+                ForeColor = Shared.preferences.colorAccent2,//Shared.preferences.colorFontDefault,
                 Font = new Font(Shared.preferences.fontDefault.FontFamily, 36, GraphicsUnit.Pixel),
                 Text = "Update",
                 AutoSize = false,
                 Cursor = Cursors.Hand,
                 TextAlign = ContentAlignment.MiddleCenter
             };
+            ccLabelUpdate.Paint += CcLabelUpdate_Paint;
             ccLabelUpdate.Click += CcLabelUpdate_Click;
             Controls.Add(ccLabelUpdate);
 
@@ -474,27 +475,21 @@ namespace Lyre
             Controls.Add(ccBottomMargin);
         }
 
+        private void CcLabelUpdate_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+            // Background
+            Pen b1 = new Pen(Color.FromArgb(155, ccLabelUpdate.ForeColor), 3);
+            e.Graphics.DrawRectangle(b1, 0, 0, ccLabelUpdate.Width - 1, ccLabelUpdate.Height - 1);
+
+            b1.Dispose();
+        }
+
         private void CcLabelUpdate_Click(object sender, EventArgs e)
         {
-            try
-            {
-                string updaterLoc = OnlineResource.LyreUpdaterLocation;
-                string downloaderLoc = OnlineResource.LyreDownloaderLocation;
-
-                // Problems with paths / descriptors?
-                //Directory.SetCurrentDirectory(updaterLoc);
-
-                Process p = new Process();
-                ProcessStartInfo ps = new ProcessStartInfo();
-                ps.FileName = Path.Combine(Directory.GetCurrentDirectory(), "updater\\LyreUpdater.exe");
-                p.StartInfo = ps;
-                p.Start();
-
-                // Problems with paths / descriptors?
-                //Directory.SetCurrentDirectory(downloaderLoc);
-                Shared.mainForm.Close();
-            }
-            catch (Exception ex) { }
+            Shared.updatePressed = true;
+            Application.Exit();
         }
 
         private void CcButtonFolderTemp_Click(object sender, EventArgs e)

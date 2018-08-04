@@ -18,6 +18,7 @@ public class Shared // Common functions, variables for Lyre downloader project
     public static string thumbnailsDirecotory = "thumbnails";
     // debug mode - print process output, ...
     public static bool debugMode = false; // true = debug mode enabled
+    public static bool updatePressed = false;
 
     // shared preferences variable
     public static Preferences preferences = new Preferences(); // preferences object
@@ -126,7 +127,7 @@ Download panel
 
 If you wish to cancel a download you can click the small square which is located to the left of the video title. To play the finished download click the progress bar.To view the video thumbnail, click the on the image which is located at the very right of a download panel.
 
-To gain access to more settings (and these instructions) click the hexagonal button at the top left of the program.
+To gain access to more settings click the hexagonal button at the top left of the program.
 To gain even more information regarding the program or to give feedback, please feel free to contact me at program.lyre@gmail.com.
 
 To learn more about the coding side, visit us at https://github.com/RobertBarachini/Lyre.
