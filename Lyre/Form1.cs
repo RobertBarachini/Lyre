@@ -791,7 +791,7 @@ namespace Lyre
                 if (instructionsExpanded)
                 {
                     ccTextInstructions.Top = 30;
-                    ccPanelInstructions.Height = 920;
+                    ccPanelInstructions.Height = 1080;
                     ccExpandInstructions.Left = (ccPanelInstructions.Width / 2) - (ccExpandInstructions.Width / 2);
                     ccExpandInstructions.Top = ccPanelInstructions.Height - ccExpandInstructions.Height - 30;
                     ccTextInstructions.Width = ccStatusBar.Width;

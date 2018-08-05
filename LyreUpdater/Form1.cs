@@ -73,7 +73,6 @@ namespace LyreUpdater
             //Height = 420;
             Width = Shared.preferences.formWidth;
             Height = Shared.preferences.formHeight;
-            FormClosing += Form1_FormClosing1;
 
             ccContainer = new Panel
             {
@@ -111,19 +110,6 @@ namespace LyreUpdater
 
                 Application.Exit();
             }
-        }
-
-        private void Form1_FormClosing1(object sender, FormClosingEventArgs e)
-        {
-            //try
-            //{
-            //    Process p = new Process();
-            //    ProcessStartInfo ps = new ProcessStartInfo();
-            //    ps.FileName = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "Lyre.exe");
-            //    p.StartInfo = ps;
-            //    p.Start();
-            //}
-            //catch (Exception ex) { }
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

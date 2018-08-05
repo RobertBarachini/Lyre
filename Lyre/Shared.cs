@@ -127,9 +127,14 @@ Download panel
 
 If you wish to cancel a download you can click the small square which is located to the left of the video title. To play the finished download click the progress bar.To view the video thumbnail, click the on the image which is located at the very right of a download panel.
 
+History viewer
+
+To open history viewer (containing downloads history), click the button located at the top right of this program. To play the video use left mouse button on the title of a video. To visit the download's source use the right mouse button.
+
 To gain access to more settings click the hexagonal button at the top left of the program.
 To gain even more information regarding the program or to give feedback, please feel free to contact me at program.lyre@gmail.com.
 
+To support the project, visit https://robertbarachini.github.io/donate.
 To learn more about the coding side, visit us at https://github.com/RobertBarachini/Lyre.
 
 I hope you will enjoy my program!
