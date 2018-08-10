@@ -1254,76 +1254,7 @@ namespace Lyre
             if(e.Control && e.KeyCode == Keys.V && copyPasteDown == false)
             {
                 ccPanelInstructions.Visible = false;
-
-                // queue download url-s
-                string clipboardString = Clipboard.GetText().Replace("http://", "https://");
-                LinkedList<string> hits = new LinkedList<string>();
-                string pattern = "https://www.youtube.com/watch?v=";
-                // youtube video_IDs are currently 11 chars long
-                int idLen = 11;
-                string[] patterns = new string[] 
-                {
-                    "https://www.youtube.com/watch?v=",
-                    "https://www.youtube.com/embed/",
-                    "https://youtu.be/"
-                };
-                int counter = 0;
-                while (true)
-                {
-                    int index = -1; //clipboardString.IndexOf(pattern);
-                    for (int i = 0; i < patterns.Length; i++)
-                    {
-                        int index2 = clipboardString.IndexOf(patterns[i]);
-                        if (index2 != -1 && (index2 < index || index == -1))
-                        {
-                            index = index2;
-                            pattern = patterns[i];
-                        }
-                    }
-
-                    if (index == -1 || clipboardString.Length < pattern.Length + idLen)
-                    {
-                        break;
-                    }
-
-                    string id = clipboardString.Substring(index + pattern.Length, idLen);
-
-                    if(SharedFunctions.isLegitID(id) == false)
-                    {
-                        break;
-                    }
-
-                    string hit = patterns[0] + id;
-                    clipboardString = clipboardString.Substring(index + pattern.Length + idLen);
-                    if (clipboardString.Length >= "&list=".Length + 34 && clipboardString.Substring(0, "&list=".Length).Equals("&list=")) // 34 current list_ID length
-                    {
-                        //hit += clipboardString.Substring(0, "&list=".Length + 34);
-                        string listHit = clipboardString.Substring(0, "&list=".Length + 34);
-                        // youtube-dl --flat-playlist -j "https://www.youtube.com/list=PLSdoVPM5Wnne47ib65gVG206M7qp43us-"
-                        // start youtube-dl process - get individual video IDs on process exit
-                        Process singleDownload = new Process();
-                        string arguments = "--flat-playlist -j \"" + hit + listHit + "\"";
-                        singleDownload.StartInfo.FileName = @"youtube-dl.exe";
-                        singleDownload.StartInfo.Arguments = arguments;
-                        singleDownload.StartInfo.CreateNoWindow = true;
-                        singleDownload.StartInfo.UseShellExecute = false;
-                        singleDownload.StartInfo.RedirectStandardOutput = true;
-                        singleDownload.OutputDataReceived += SingleDownload_OutputDataReceived;
-                        singleDownload.EnableRaisingEvents = true;
-                        singleDownload.Exited += SingleDownload_Exited; ;
-                        singleDownload.Start();
-                        singleDownload.BeginOutputReadLine();
-                    }
-                    hits.AddLast(hit);
-                    counter++;
-                }
-                foreach (string l in hits)
-                {
-                    downloadsPreQueue.Enqueue(l);
-                    Application.DoEvents();
-                    //newDownload(l);
-                }
-                copyPasteDown = true;
+                detectLinks();
             }
             else if(e.KeyCode == Keys.F11)
             {
@@ -1337,6 +1268,144 @@ namespace Lyre
                     this.FormBorderStyle = FormBorderStyle.None;
                     this.WindowState = FormWindowState.Maximized;
                 }
+            }
+        }
+
+        private void detectLinks()
+        {
+            // queue download url-s
+            string clipboardString = Clipboard.GetText().Replace("http://", "https://");
+            LinkedList<string> hits = new LinkedList<string>();
+            string pattern = "https://www.youtube.com/watch?v=";
+            // youtube video_IDs are currently 11 chars long
+            int idLen = 11;
+            string[] patterns = new string[]
+            {
+                    "https://www.youtube.com/watch?v=",
+                    "https://www.youtube.com/embed/",
+                    "https://youtu.be/",
+                    "https://www.youtube.com/playlist?list="
+            };
+            int counter = 0;
+            int cLen = -1;
+            while (true)
+            {
+                cLen = clipboardString.Length;
+                try
+                {
+                    int index = -1; //clipboardString.IndexOf(pattern);
+                    for (int i = 0; i < patterns.Length; i++)
+                    {
+                        int index2 = clipboardString.IndexOf(patterns[i]);
+                        if (index2 != -1 && (index2 < index || index == -1))
+                        {
+                            index = index2;
+                            pattern = patterns[i];
+                        }
+                    }
+
+                    if (index == -1)
+                    {
+                        break;
+                    }
+
+                    if (pattern.Equals(patterns[3]) == false)
+                    {
+                        if (clipboardString.Length < pattern.Length + idLen)
+                        {
+                            break;
+                        }
+
+                        string id = clipboardString.Substring(index + pattern.Length, idLen);
+
+                        if (clipboardString.Contains("&list="))
+                        {
+                            expandPlaylist(clipboardString, false);
+                        }
+
+                        if (SharedFunctions.isLegitID(id) == false)
+                        {
+                            break;
+                        }
+
+                        // fix link recognition for lists 
+
+                        string hit = patterns[0] + id;
+                        clipboardString = clipboardString.Substring(index + pattern.Length + idLen);
+
+                        hits.AddLast(hit);
+                        counter++;
+                    }
+                    else
+                    {
+                        expandPlaylist(clipboardString, true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    clipboardString = clipboardString.Substring(1);
+                }
+                if(cLen == clipboardString.Length)
+                {
+                    break;
+                }
+            }
+            foreach (string l in hits)
+            {
+                downloadsPreQueue.Enqueue(l);
+                Application.DoEvents();
+            }
+            copyPasteDown = true;
+        }
+
+        private void expandPlaylist(string clipboardString, bool onlyPlaylist)
+        {
+            try
+            {
+                // 34 current list_ID length || 18 is possible too???
+                //hit += clipboardString.Substring(0, "&list=".Length + 34);
+                //"https://www.youtube.com/watch?v=",
+                //"https://www.youtube.com/embed/",
+                //"https://youtu.be/",
+                //"https://www.youtube.com/playlist?list=" onlyPlaylist
+
+                string listHit = "";
+
+                if(onlyPlaylist)
+                {
+                    listHit = clipboardString.Substring("https://www.youtube.com/playlist?list=".Length);
+                    listHit = listHit.Substring(0, Math.Min(listHit.Length, 34));
+                }
+                else
+                {
+                    listHit = clipboardString.Substring(clipboardString.IndexOf("&list=") + "&list=".Length);
+                    listHit = listHit.Substring(0, Math.Min(listHit.Length, 34));
+                }
+
+                if (listHit.Contains("&")) // in case the playlist is 18 chars long and url contains &index= / &t= / ...
+                {
+                    int index = listHit.IndexOf("&");
+                    listHit = listHit.Substring(0, index);
+                }
+
+                // youtube-dl --flat-playlist -j "https://www.youtube.com/playlist?list=PLSdoVPM5Wnne47ib65gVG206M7qp43us-"
+                // start youtube-dl process - get individual video IDs on process exit
+                Process singleDownload = new Process();
+                string arguments = "--flat-playlist -j \"" + "https://www.youtube.com/playlist?list=" + listHit + "\"";
+                singleDownload.StartInfo.FileName = @"youtube-dl.exe";
+                singleDownload.StartInfo.Arguments = arguments;
+                singleDownload.StartInfo.CreateNoWindow = true;
+                singleDownload.StartInfo.UseShellExecute = false;
+                singleDownload.StartInfo.RedirectStandardOutput = true;
+                singleDownload.OutputDataReceived += SingleDownload_OutputDataReceived;
+                singleDownload.EnableRaisingEvents = true;
+                singleDownload.Exited += SingleDownload_Exited; ;
+                singleDownload.Start();
+                singleDownload.BeginOutputReadLine();
+            }
+            catch(Exception ex)
+            {
+
             }
         }
 
