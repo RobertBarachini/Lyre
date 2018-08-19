@@ -253,8 +253,10 @@ public class CcHistoryViewer : CcPanel
 
         int topPoint = ccSearchContainer.Top + ccSearchContainer.Height + bottomMargin; //50;
 
+        CcHistoryItemContainer neki = null;
         foreach(CcHistoryItemContainer hi in hiControls)
         {
+            neki = hi;
             if (hi.Visible)
             {
                 hi.Top = topPoint + ((hiHeight + bottomMargin) * counter);
@@ -269,6 +271,10 @@ public class CcHistoryViewer : CcPanel
                 Application.DoEvents();
             }
         }
+
+        // Now how do I fit more controls into this panel
+        // max 'height' is around 32k
+        //Shared.mainForm.Text = (neki.Top + neki.Height).ToString();
 
         ResumeLayout();
         AutoScrollPosition = new Point(Math.Abs(scrollAuto.X), Math.Abs(scrollAuto.Y));

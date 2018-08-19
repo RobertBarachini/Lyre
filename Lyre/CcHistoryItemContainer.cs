@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 public class CcHistoryItemContainer : CcPanel
 {
-    private Label ccTitle;
+    public Label ccTitle;
     private PictureBox ccThumbnail;
 
     private HistoryItem historyItem;

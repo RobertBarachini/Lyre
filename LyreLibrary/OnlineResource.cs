@@ -300,7 +300,7 @@ public class OnlineResource
             },
             false,
             false,
-            1
+            2
         ),
     };
 
@@ -316,7 +316,7 @@ public class OnlineResource
             },
             false,
             false,
-            1
+            2
         )
     };
 }

@@ -251,7 +251,7 @@ namespace LyreUpdater
             ccMainLog.AppendText(sender.filename + " : [PROGRESS] Done" + Environment.NewLine);
             ccMainLog.AppendText(sender.filename + " : " + sender.url.ToString() + ":" + Environment.NewLine);
             ccMainLog.AppendText(sender.filename + " : [BYTES SIZE] " + sender.totalBytesToReceive.ToString() + Environment.NewLine);
-            ccMainLog.AppendText(sender.filename + " : [TIME NEEDED] (ms): " + Math.Round(sender.timeNeeded.TotalMilliseconds) + Environment.NewLine + Environment.NewLine);
+            ccMainLog.AppendText(sender.filename + " : [TIME NEEDED] (ms): " + Math.Round(sender.timeNeeded.TotalMilliseconds) + Environment.NewLine);
             ccMainLog.ScrollToCaret();
 
             try
@@ -277,6 +277,7 @@ namespace LyreUpdater
                     }
 
                     // write the file
+                    ccMainLog.AppendText(sender.filename + " : " + outputPath + Environment.NewLine);
                     File.Create(outputPath).Close();
                     File.WriteAllBytes(outputPath, sender.data);
                 }
@@ -285,6 +286,8 @@ namespace LyreUpdater
             {
                 ccMainLog.AppendText(sender.filename + Environment.NewLine + ex.ToString() + Environment.NewLine + Environment.NewLine);
             }
+
+            ccMainLog.AppendText(Environment.NewLine);
 
             lock (resourcesMissingCountLock)
             {

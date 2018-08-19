@@ -72,6 +72,7 @@ namespace Lyre
         {
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.ServerCertificateValidationCallback = null;
 
             if (File.Exists("LyreLibrary.dll") == false)
             {

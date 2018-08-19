@@ -68,6 +68,12 @@ class CcToggle : Control
         tAnimate.Tick += TAnimate_Tick;
         isON = false;
         this.Click += CcToggle_Click;
+        DoubleClick += CcToggle_DoubleClick;
+    }
+
+    private void CcToggle_DoubleClick(object sender, EventArgs e)
+    {
+        isON = !isON;
     }
 
     private void CcToggle_Click(object sender, EventArgs e)
@@ -124,6 +130,14 @@ class CcToggle : Control
         // Circle ON/OFF
         b1 = new SolidBrush(ForeColor);
         e.Graphics.FillEllipse(b1, (int)tLocation, 0, Height - 1, Height - 1);
+
+        // Text
+        b1 = new SolidBrush(isON ? _colorON : _colorOFF);
+        string text = isON ? "ON" : "OFF";
+        StringFormat sf = new StringFormat();
+        sf.LineAlignment = StringAlignment.Center;
+        sf.Alignment = StringAlignment.Center;
+        e.Graphics.DrawString(text, Shared.preferences.fontDefault, b1, new Rectangle((int)tLocation, 0, Height - 1, Height), sf);
 
         b1.Dispose();
     }
