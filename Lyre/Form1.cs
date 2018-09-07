@@ -62,7 +62,7 @@ namespace Lyre
 
         private object resourcesMissingCountLock = new object();
         private int resourcesMissingCount;
-        private Queue<string> downloadsPreQueue = new Queue<string>();
+        private Queue<DownloadContext> downloadsPreQueue = new Queue<DownloadContext>();
         private System.Windows.Forms.Timer timerStatusUpdater;
         private System.Windows.Forms.Timer timerPreQueueHandler;
         private bool noPreferencesFound;
@@ -176,8 +176,8 @@ namespace Lyre
                 {
                     break;
                 }
-                string newVideoID = downloadsPreQueue.Dequeue();
-                newDownload(newVideoID);
+                DownloadContext newVideoContext = downloadsPreQueue.Dequeue();
+                newDownload(newVideoContext);
                 //Application.DoEvents();
                 downloadsOngoing++;
             }
@@ -321,13 +321,55 @@ namespace Lyre
 
         private void loadDlQueue()
         {
-            LinkedList<string> urls = new LinkedList<string>();
-            SharedFunctions.loadJSON(Shared.filenameDlQueue, ref urls);
-            if (resourcesMissingCount == 0) // first download resources and then populate and resume downloads
+            string fileContents = "";
+            if(File.Exists(Shared.filenameDlQueue))
             {
-                foreach (string s in urls)
+                fileContents = File.ReadAllText(Shared.filenameDlQueue);
+            }
+            else
+            {
+                LinkedList<DownloadContext> dNew = new LinkedList<DownloadContext>();
+                SharedFunctions.saveJSON(Shared.filenameDlQueue, dNew);
+                return;
+            }
+
+            {
+                LinkedList<DownloadContext> urls = new LinkedList<DownloadContext>();
+                if (SharedFunctions.loadJSON(ref urls, fileContents))
                 {
-                    downloadsPreQueue.Enqueue(s);
+                    if (resourcesMissingCount == 0) // first download resources and then populate and resume downloads
+                    {
+                        foreach (object s in urls)
+                        {
+                            try
+                            {
+                                downloadsPreQueue.Enqueue((DownloadContext)s);
+                                continue;
+                            }
+                            catch (Exception ex) { }
+                        }
+                    }
+                    return;
+                }
+            }
+
+            {   // Backward compatibility
+                LinkedList<string> urls = new LinkedList<string>();
+                if (SharedFunctions.loadJSON(ref urls, fileContents))
+                {
+                    if (resourcesMissingCount == 0) // first download resources and then populate and resume downloads
+                    {
+                        foreach (object s in urls)
+                        {
+                            try
+                            {
+                                downloadsPreQueue.Enqueue(new DownloadContext((string)s, Shared.preferences.canConvert, Shared.preferences.maxAudioQualitySelector, Shared.preferences.maxVideoQualitySelector, Shared.preferences.maxVideoFrameRateSelector));
+                                continue;
+                            }
+                            catch (Exception ex) { }
+                        }
+                    }
+                    return;
                 }
             }
         }
@@ -342,12 +384,12 @@ namespace Lyre
             // valid downloads in the queue
             if (resourcesMissingCount != -1)
             {
-                LinkedList<string> urls = new LinkedList<string>();
+                LinkedList<DownloadContext> downloadsToSave = new LinkedList<DownloadContext>();
                 foreach (DownloadContainer dc in DownloadContainer.getDownloadsAccess())
                 {
                     if (dc.isFinished() == false)
                     {
-                        urls.AddLast(dc.getURL());
+                        downloadsToSave.AddLast(new DownloadContext(dc.getURL(), Shared.preferences.canConvert, Shared.preferences.maxAudioQualitySelector, Shared.preferences.maxVideoQualitySelector, Shared.preferences.maxVideoFrameRateSelector));
                     }
                     //// Kill the process
                     //try
@@ -359,11 +401,11 @@ namespace Lyre
 
                     //}
                 }
-                foreach (string s in downloadsPreQueue)
+                foreach (DownloadContext s in downloadsPreQueue)
                 {
-                    urls.AddLast(s);
+                    downloadsToSave.AddLast(s);
                 }
-                SharedFunctions.saveJSON(Shared.filenameDlQueue, urls);
+                SharedFunctions.saveJSON(Shared.filenameDlQueue, downloadsToSave);
             }
         }
 
@@ -1353,7 +1395,7 @@ namespace Lyre
             }
             foreach (string l in hits)
             {
-                downloadsPreQueue.Enqueue(l);
+                downloadsPreQueue.Enqueue(new DownloadContext(l, Shared.preferences.canConvert, Shared.preferences.maxAudioQualitySelector, Shared.preferences.maxVideoQualitySelector, Shared.preferences.maxVideoFrameRateSelector));
                 Application.DoEvents();
             }
             copyPasteDown = true;
@@ -1432,13 +1474,13 @@ namespace Lyre
                     url += jsonO.GetValue("id");
                     this.Invoke((MethodInvoker)delegate
                     {
-                        downloadsPreQueue.Enqueue(url);
+                        downloadsPreQueue.Enqueue(new DownloadContext(url, Shared.preferences.canConvert, Shared.preferences.maxAudioQualitySelector, Shared.preferences.maxVideoQualitySelector, Shared.preferences.maxVideoFrameRateSelector));
                     });
                 }
             }
         }
 
-        private void newDownload(string url)
+        private void newDownload(DownloadContext downloadContext)
         {
             DownloadContainer newDc = new DownloadContainer();
             if (DownloadContainer.getDownloadsAccess().Count == 1)
@@ -1447,7 +1489,7 @@ namespace Lyre
                 dcMain.Parent = ccDownloadsContainer;
                 resizeDcMain();
             }
-            newDc.download(url, Shared.preferences.downloadsDirectory, Shared.preferences.canConvert);
+            newDc.download(downloadContext, Shared.preferences.downloadsDirectory);
         }
 
         private void Paste_KeyUp(object sender, KeyEventArgs e)

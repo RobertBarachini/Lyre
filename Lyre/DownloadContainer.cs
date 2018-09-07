@@ -110,6 +110,7 @@ class DownloadContainer : CcPanel
     private string thumbnailPath;
     private DateTime creationTime;
     private DateTime timeRecentDownload;
+    private Lyre.DownloadContext downloadContext;
 
     public DownloadContainer()
     {
@@ -462,9 +463,11 @@ class DownloadContainer : CcPanel
         download_p(url.ToString(), destinationDirectory, canConvert);
     }
 
-    public void download(string url, string destinationDirectory, bool canConvert)
+    public void download(Lyre.DownloadContext _downloadContext, string destinationDirectory)
     {
-        this.videoID = SharedFunctions.getVideoID(url);
+        downloadContext = _downloadContext;
+
+        this.videoID = SharedFunctions.getVideoID(downloadContext.url);
         string path = Path.Combine(Shared.preferences.tempDirectoy, videoID + ".info.json");
 
 
@@ -514,17 +517,18 @@ class DownloadContainer : CcPanel
         else
         {
             // only add to downloads if the videoID is unique = don't download twice
-            if (isUniqueDownloadsID(SharedFunctions.getVideoID(url), canConvert))
+            if (isUniqueDownloadsID(SharedFunctions.getVideoID(downloadContext.url), canConvert))
             {
                 try
                 {
-                    this.url = new Uri(url);
+                    this.url = new Uri(downloadContext.url);
                 }
                 catch (Exception ex)
                 {
                     return;
                 }
-                this.canConvert = canConvert;
+
+                this.canConvert = downloadContext.canConvert;
                 this.destinationDirectory = destinationDirectory;
 
                 lock (downloadsQueueLock)
@@ -576,7 +580,7 @@ class DownloadContainer : CcPanel
             }
             else
             {
-                arguments = "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json -f bestvideo[height<=?" + Shared.getVideoQualityStringPure(Shared.preferences.maxVideoQualitySelector) + "][fps<=?" + Shared.getVideoFrameRatePure(Shared.preferences.maxVideoFrameRateSelector) + "]+bestaudio";
+                arguments = "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json -f bestvideo[height<=?" + Shared.getVideoQualityStringPure(downloadContext.videoQualitySelector) + "][fps<=?" + Shared.getVideoFrameRatePure(downloadContext.framerateSelector) + "]+bestaudio";
             }
             singleDownload.StartInfo.FileName = @"youtube-dl.exe";
             singleDownload.StartInfo.Arguments = arguments;
@@ -778,7 +782,8 @@ class DownloadContainer : CcPanel
         singleEncoder = new Process();
         {
             string newPath = dlOutputPath.Substring(0, dlOutputPath.LastIndexOf("."));
-            arguments = "-v debug -i \"" + dlOutputPath /*Path.Combine(Shared.preferences.tempDirectoy, videoID) + ".webm"*/ + "\" -f mp3 -b:a 320k \"" + /*Path.Combine(Shared.preferences.downloadsDirectory, videoID)*//* + ".mp3"*/newPath + ".mp3\" -y";
+            arguments = "-v debug -i \"" + dlOutputPath + "\" -f mp3 -b:a 320k \"" + newPath + ".mp3\" -y";
+            //arguments = "-v debug -i \"" + dlOutputPath + "\" -f mp3 \"" + newPath + ".mp3\" -y";
             singleEncoder.StartInfo.FileName = @"ffmpeg.exe";
             singleEncoder.StartInfo.Arguments = arguments;
             singleEncoder.StartInfo.CreateNoWindow = true;
