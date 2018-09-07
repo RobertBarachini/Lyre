@@ -214,7 +214,11 @@ public class CcHistoryViewer : CcPanel
     {
         foreach (CcHistoryItemContainer hiC in hiControls)
         {
-            hiC.Visible = true;
+            try
+            {
+                hiC.Visible = true;
+            }
+            catch(Exception ex) { }
         }
         ResizeComponents();
     }

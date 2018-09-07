@@ -782,8 +782,9 @@ class DownloadContainer : CcPanel
         singleEncoder = new Process();
         {
             string newPath = dlOutputPath.Substring(0, dlOutputPath.LastIndexOf("."));
-            arguments = "-v debug -i \"" + dlOutputPath + "\" -f mp3 -b:a 320k \"" + newPath + ".mp3\" -y";
-            //arguments = "-v debug -i \"" + dlOutputPath + "\" -f mp3 \"" + newPath + ".mp3\" -y";
+            string audioQ = downloadContext.audioQualitySelector == 0 ? "" : "-b:a " + Shared.getAudioQualityStringPure(downloadContext.audioQualitySelector) + "k ";
+            //arguments = "-v debug -i \"" + dlOutputPath + "\" -f mp3 -b:a 320k \"" + newPath + ".mp3\" -y";
+            arguments = "-v debug -i \"" + dlOutputPath + "\" -f mp3 " + audioQ + "\"" + newPath + ".mp3\" -y";
             singleEncoder.StartInfo.FileName = @"ffmpeg.exe";
             singleEncoder.StartInfo.Arguments = arguments;
             singleEncoder.StartInfo.CreateNoWindow = true;

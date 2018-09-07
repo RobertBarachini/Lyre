@@ -37,7 +37,7 @@ namespace Lyre
         private CcPanel ccFormClose;
         private CcPanel ccDownloadsDirectory;
         private Label ccHint;
-        private Label ccVideoQuality;
+        private Label ccAudioVideoQuality;
         private Label ccHistoryButton;
         private CcHistoryViewer ccHistoryViewer;
         private CcPanel ccSettingsButton;
@@ -654,9 +654,10 @@ namespace Lyre
                 colorOFF = Shared.preferences.colorAccent3
             };
             ccCanConvert.Click += CcCanConvert_Click;
+            ccCanConvert.DoubleClick += CcCanConvert_DoubleClick;
             ccStatusBar.Controls.Add(ccCanConvert);
 
-            ccVideoQuality = new Label()
+            ccAudioVideoQuality = new Label()
             {
                 Parent = ccTopBar,
                 BackColor = ccTopBar.BackColor,
@@ -665,10 +666,10 @@ namespace Lyre
                 Font = new Font(Shared.preferences.fontDefault.FontFamily, 20, GraphicsUnit.Pixel),
                 AutoSize = true
             };
-            ccVideoQuality.MouseClick += CcVideoQuality_MouseClick;
-            ccVideoQuality.MouseDoubleClick += CcVideoQuality_MouseDoubleClick;
-            ccTopBar.Controls.Add(ccVideoQuality);
-            updateCcVideoQualityText();
+            ccAudioVideoQuality.MouseClick += CcVideoQuality_MouseClick;
+            ccAudioVideoQuality.MouseDoubleClick += CcVideoQuality_MouseDoubleClick;
+            ccTopBar.Controls.Add(ccAudioVideoQuality);
+            updateCcAudioVideoQualityText();
 
             ccHistoryButton = new Label()
             {
@@ -987,36 +988,51 @@ namespace Lyre
         private void CcCanConvert_Click(object sender, EventArgs e)
         {
             Shared.preferences.canConvert = ccCanConvert.isON;
+            updateCcAudioVideoQualityText();
+        }
+
+        private void CcCanConvert_DoubleClick(object sender, EventArgs e)
+        {
+            Shared.preferences.canConvert = ccCanConvert.isON;
+            updateCcAudioVideoQualityText();
         }
 
         private void CcVideoQuality_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
-            {
-                //Shared.increaseVideoQuality();
-                Shared.increaseVideoQuality();
-            }
-            else if (e.Button == MouseButtons.Right)
-            {
-                //Shared.decreaseVideoQuality();
-                Shared.decreaseVideoQuality();
-            }
-
-            updateCcVideoQualityText();
+            changeAudioVideoQuality(e);
         }
 
         private void CcVideoQuality_MouseClick(object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Left)
+            changeAudioVideoQuality(e);
+        }
+
+        private void changeAudioVideoQuality(MouseEventArgs e)
+        {
+            if (Shared.preferences.canConvert)
             {
-                Shared.increaseVideoQuality();
+                if (e.Button == MouseButtons.Left)
+                {
+                    Shared.increaseAudioQuality();
+                }
+                else if (e.Button == MouseButtons.Right)
+                {
+                    Shared.decreaseAudioQuality();
+                }
             }
-            else if(e.Button == MouseButtons.Right)
+            else
             {
-                Shared.decreaseVideoQuality();
+                if (e.Button == MouseButtons.Left)
+                {
+                    Shared.increaseVideoQuality();
+                }
+                else if (e.Button == MouseButtons.Right)
+                {
+                    Shared.decreaseVideoQuality();
+                }
             }
 
-            updateCcVideoQualityText();
+            updateCcAudioVideoQualityText();
         }
 
         // https://stackoverflow.com/a/1592899
@@ -1035,9 +1051,16 @@ namespace Lyre
             }
         }
 
-        private void updateCcVideoQualityText()
+        private void updateCcAudioVideoQualityText()
         {
-            ccVideoQuality.Text = Shared.getVideoQualityString(Shared.preferences.maxVideoQualitySelector) + " " + Shared.getVideoFrameRatePure(Shared.preferences.maxVideoFrameRateSelector);
+            if (Shared.preferences.canConvert)
+            {
+                ccAudioVideoQuality.Text = Shared.getAudioQualityString(Shared.preferences.maxAudioQualitySelector);
+            }
+            else
+            {
+                ccAudioVideoQuality.Text = Shared.getVideoQualityString(Shared.preferences.maxVideoQualitySelector) + " " + Shared.getVideoFrameRatePure(Shared.preferences.maxVideoFrameRateSelector);
+            }
         }
 
         private void CcResourceDownloaderLog_LinkClicked(object sender, LinkClickedEventArgs e)
@@ -1190,9 +1213,9 @@ namespace Lyre
             //ccDownloadsDirectory.Height = ccFormClose.Height;
             //ccDownloadsDirectory.Width = ccFormClose.Width;
 
-            ccVideoQuality.Top = barMargin;
-            ccVideoQuality.Left = ccSettingsButton.Left + ccSettingsButton.Width + barMargin;
-            ccVideoQuality.Height = ccFormClose.Height;
+            ccAudioVideoQuality.Top = barMargin;
+            ccAudioVideoQuality.Left = ccSettingsButton.Left + ccSettingsButton.Width + barMargin;
+            ccAudioVideoQuality.Height = ccFormClose.Height;
 
             ccHistoryButton.Top = barMargin - 3;
             ccHistoryButton.Left = ccTopBar.Width - ccHistoryButton.Width - barMargin + 3;

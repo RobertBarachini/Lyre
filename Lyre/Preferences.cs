@@ -48,7 +48,7 @@ public class Preferences // Preferences / Settings / Defaults
     [JsonProperty]
     public int maxVideoFrameRateSelector = 2; // 24, 25, 30, 48, 50, 60
     [JsonProperty]
-    public int maxAudioQualitySelector = 4; // AUTO, 128k, 192k, 256k, 320k
+    public int maxAudioQualitySelector = 0; // AUTO, 128k, 192k, 256k, 320k
     [JsonProperty]
     public bool enableThumbnailAnimations = false;
     [JsonProperty]

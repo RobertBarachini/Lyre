@@ -23,6 +23,32 @@ public class Shared // Common functions, variables for Lyre downloader project
     // shared preferences variable
     public static Preferences preferences = new Preferences(); // preferences object
 
+    public static string getAudioQualityString(int qualitySelector)
+    {
+        if(qualitySelector == 0)
+        {
+            return "mp3 - Auto bitrate";
+        }
+
+        string selectedQ = getAudioQualityStringPure(qualitySelector);
+
+        return "mp3 - " + selectedQ + "kbps";
+    }
+
+    public static string getAudioQualityStringPure(int qualitySelector)
+    {
+        qualitySelector = Math.Max(Math.Min(qualitySelector, 5), 0); // Currently 5 are supported
+        string selectedQ = "320";
+
+        if (qualitySelector == 0) { selectedQ = ""; }
+        else if (qualitySelector == 1) { selectedQ = "128"; }
+        else if (qualitySelector == 2) { selectedQ = "192"; }
+        else if (qualitySelector == 3) { selectedQ = "256"; }
+        else if (qualitySelector == 4) { selectedQ = "320"; }
+        // AUTO, 128k, 192k, 256k, 320k
+        return selectedQ;
+    }
+
     public static string getVideoQualityString(int qualitySelector)
     {
         string selectedQ = getVideoQualityStringPure(qualitySelector);
@@ -66,6 +92,24 @@ public class Shared // Common functions, variables for Lyre downloader project
         else if (fpsSelector == 5) { fps = "60"; }
 
         return fps.ToString();
+    }
+
+    public static void increaseAudioQuality()
+    {
+        preferences.maxAudioQualitySelector++;
+        if(preferences.maxAudioQualitySelector > 4)
+        {
+            preferences.maxAudioQualitySelector = 0;
+        }
+    }
+
+    public static void decreaseAudioQuality()
+    {
+        preferences.maxAudioQualitySelector--;
+        if(preferences.maxAudioQualitySelector < 0)
+        {
+            preferences.maxAudioQualitySelector = 4;
+        }
     }
 
     public static void increaseVideoQuality()
