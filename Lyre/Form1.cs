@@ -152,6 +152,24 @@ namespace Lyre
                 };
                 timerPreQueueHandler.Tick += TimerPreQueueHandler_Tick;
                 timerPreQueueHandler.Start();
+
+                // Try replacing LyreLibrary.dll of the updater if the two files don't match ...
+                // as the updater itself cannot replace the library while running
+                try
+                {
+                    string f1 = "LyreLibrary.dll";
+                    string f2 = "updater/LyreLibrary.dll";
+                    FileInfo fi1 = new FileInfo(f1);
+                    FileInfo fi2 = new FileInfo(f2);
+
+                    if(fi1.Length != fi2.Length)
+                    {
+                        File.Delete("updater/LyreLibrary.dll");
+                        File.Copy(f1, f2);
+                        int allright = 0;
+                    }
+                }
+                catch(Exception ex) { }
             }
 
             this.BringToFront();

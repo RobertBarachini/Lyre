@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 
 public class SharedFunctions // Common functions for entire Lyre solution
 {
-    public static bool loadJSON<T>(string path, ref T obj)
+    public static void loadJSON<T>(string path, ref T obj)
     {
         if (File.Exists(path))
         {
@@ -19,18 +19,15 @@ public class SharedFunctions // Common functions for entire Lyre solution
             {
                 string fileString = File.ReadAllText(path);
                 obj = JsonConvert.DeserializeObject<T>(fileString);
-                return true;
             }
             catch (Exception ex)
             {
                 saveJSON(path, obj);
-                return false;
             }
         }
         else
         {
             saveJSON(path, obj);
-            return false;
         }
     }
 
