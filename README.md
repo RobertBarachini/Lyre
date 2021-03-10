@@ -1,7 +1,8 @@
 # Lyre - a more transparent music app
 
-The minimalistic youtube-dl UI that supports multiple simultaneous Youtube downloads: 
-![Drag Racing](https://robertbarachini.github.io/resources/LyreExample.jpg)
+The minimalistic youtube-dl UI that supports multiple simultaneous Youtube downloads:
+&nbsp; 
+![Lyre UI](https://robertbarachini.github.io/resources/LyreExample.jpg)
 
 ## Build
 Open the solution in Visual Studio and add the following libraries using NuGet:
