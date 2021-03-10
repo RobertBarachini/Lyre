@@ -13,6 +13,7 @@ namespace Lyre
         public int audioQualitySelector;
         public int videoQualitySelector;
         public int framerateSelector;
+        public Website website;
 
         public DownloadContext(string url, bool canConvert, int audioQualitySelector, int videoQualitySelector, int framerateSelector)
         {
@@ -21,6 +22,23 @@ namespace Lyre
             this.audioQualitySelector = audioQualitySelector;
             this.videoQualitySelector = videoQualitySelector;
             this.framerateSelector = framerateSelector;
+            this.website = Website.Youtube;
         }
+
+        public DownloadContext(string url, bool canConvert, int audioQualitySelector, int videoQualitySelector, int framerateSelector, Website website)
+        {
+            this.url = url;
+            this.canConvert = canConvert;
+            this.audioQualitySelector = audioQualitySelector;
+            this.videoQualitySelector = videoQualitySelector;
+            this.framerateSelector = framerateSelector;
+            this.website = website;
+        }
+
+        public enum Website
+        {
+            Youtube,
+            Soundcloud
+        };
     }
 }

@@ -8,6 +8,7 @@ using System.Drawing;
 using Newtonsoft.Json;
 using System.Drawing.Imaging;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 public class SharedFunctions // Common functions for entire Lyre solution
 {
@@ -127,6 +128,33 @@ public class SharedFunctions // Common functions for entire Lyre solution
             return false;
         }
     }
+
+    public static void convertToJpg(string thumbnailPath)
+    {
+        try
+        {
+            string arguments = "";
+
+            Process jpgEncoder = new Process();
+            {
+                string currentDirectory = Directory.GetCurrentDirectory();
+                string thumbnailPathJpg = Path.ChangeExtension(thumbnailPath, ".jpg");
+                arguments = "-y -i \"" + thumbnailPath + "\" \"" + thumbnailPathJpg + "\"";
+                jpgEncoder.StartInfo.FileName = @"ffmpeg.exe";
+                jpgEncoder.StartInfo.Arguments = arguments;
+                jpgEncoder.StartInfo.CreateNoWindow = true;
+                jpgEncoder.StartInfo.UseShellExecute = false;
+                jpgEncoder.StartInfo.RedirectStandardOutput = false;
+                jpgEncoder.StartInfo.RedirectStandardError = false;
+                jpgEncoder.EnableRaisingEvents = false;
+                jpgEncoder.Start();
+                jpgEncoder.WaitForExit();
+            }
+        }
+        catch (Exception ex) { }
+    }
+
+ 
 
     public static Image getThumbnail(string thumbnailPath)
     {

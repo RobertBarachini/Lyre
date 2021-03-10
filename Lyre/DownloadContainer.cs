@@ -648,16 +648,52 @@ class DownloadContainer : CcPanel
                     Directory.CreateDirectory(Shared.thumbnailsDirecotory);
                 }
 
-                string fileURL = infoJSON["thumbnails"].First["url"].ToString();
-                imageExtension = SharedFunctions.getExtension(fileURL);
+                string fileURL = infoJSON["thumbnail"].ToString();//infoJSON["thumbnails"].First["url"].ToString();
+                //int maxRes = -1;
+                //// Get the highest quality jpg, otherwise choose the webp
+                //foreach (JObject thumbnail in infoJSON["thumbnails"])
+                //{
+                //    int newRes = Convert.ToInt32(thumbnail["width"]);
+                //    try
+                //    {
+                //        fileURL = fileURL.Substring(0, fileURL.IndexOf("?"));
+                //    }
+                //    catch (Exception ex)
+                //    {
 
+                //    }
+                //    imageExtension = SharedFunctions.getExtension(fileURL);
+                //    if (newRes > maxRes && imageExtension == ".jpg")
+                //    {
+                //        maxRes = newRes;
+                //        fileURL = (string)thumbnail["url"];
+                //    }
+                //}
+                try
+                {
+                    fileURL = fileURL.Substring(0, fileURL.IndexOf("?"));
+                }
+                catch (Exception ex)
+                {
+
+                }
+             
+                imageExtension = SharedFunctions.getExtension(fileURL);
+                //thumbnailPath = Path.GetFullPath(Path.Combine(Shared.thumbnailsDirecotory, videoID + imageExtension));
+
+                // Convert thumbnail to jpg anyways
+                SharedFunctions.convertToJpg(Path.GetFullPath(Path.Combine(Shared.preferences.tempDirectoy, videoID + imageExtension)));
+                imageExtension = ".jpg";
                 thumbnailPath = Path.GetFullPath(Path.Combine(Shared.thumbnailsDirecotory, videoID + imageExtension));
 
                 try
                 {
-                    System.IO.File.Move(Path.Combine(Shared.preferences.tempDirectoy, videoID) + imageExtension, thumbnailPath);
+                    string fileThumb = Path.Combine(Shared.preferences.tempDirectoy, videoID) + imageExtension;
+                    System.IO.File.Move(fileThumb, thumbnailPath); //, Path.ChangeExtension(thumbnailPath, ".jpg"));
                 }
                 catch (Exception ex) { }
+
+                //thumbnailPath = thumbnailPath.Replace(imageExtension, ".jpg");
 
                 this.thumbnail.Invoke((MethodInvoker)delegate
                 {
