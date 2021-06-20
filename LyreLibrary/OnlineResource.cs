@@ -68,17 +68,18 @@ public class OnlineResource
         //dName = dName.Substring(dName.LastIndexOf("\\") + 1);
         //return Path.Combine(Directory.GetCurrentDirectory(), File.Exists("resources.json")/*dName.Equals("updater")*/ ? "" : "updater");
     }
-
+   
     private static string getAssemblyDirectory()
     {
         // https://stackoverflow.com/questions/52797/how-do-i-get-the-path-of-the-assembly-the-code-is-in
-        string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-        return Path.GetDirectoryName(codeBase).Substring(6);
-        //UriBuilder uri = new UriBuilder(codeBase);
-        //string path = Uri.UnescapeDataString(uri.Path);
-        //return Path.GetDirectoryName(path);
+        // The "correct approach", see comments under above SO question
+        return AppDomain.CurrentDomain.BaseDirectory;
+              
+        // TODO: folders ("updater" and "resources") don't get generated (tested
+        // on linux), if you create folders by hand, all resources download
+        // successfully
     }
-
+       
     // contains all resource and dependency links for Lyre Downloader
     public static List<OnlineResource> resourcesListDownloader = new List<OnlineResource>()
     {
