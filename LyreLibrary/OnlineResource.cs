@@ -267,15 +267,15 @@ public class OnlineResource
         ),
         new OnlineResource
         (
-            "https://rg3.github.io/youtube-dl/",
-            resourcesWebsiteURL + "youtube-dl.exe",
+            "https://github.com/yt-dlp/yt-dlp",
+            resourcesWebsiteURL + "yt-dlp.exe",
             new List<string>
             {
-                Path.Combine(LyreDownloaderLocation, "youtube-dl.exe")
+                Path.Combine(LyreDownloaderLocation, "yt-dlp.exe")
             },
             false,
             false,
-            1
+            2
         ),
         new OnlineResource
         (
