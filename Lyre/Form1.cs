@@ -1476,7 +1476,7 @@ namespace Lyre
                 // start youtube-dl process - get individual video IDs on process exit
                 Process singleDownload = new Process();
                 string arguments = "--flat-playlist -j \"" + "https://www.youtube.com/playlist?list=" + listHit + "\"";
-                singleDownload.StartInfo.FileName = @"youtube-dl.exe";
+                singleDownload.StartInfo.FileName = @"yt-dlp.exe";
                 singleDownload.StartInfo.Arguments = arguments;
                 singleDownload.StartInfo.CreateNoWindow = true;
                 singleDownload.StartInfo.UseShellExecute = false;

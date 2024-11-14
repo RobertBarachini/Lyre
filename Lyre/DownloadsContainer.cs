@@ -367,7 +367,7 @@ class DownloadContainer : Panel
 
         singleDownload = new Process();
         {
-            singleDownload.StartInfo.FileName = @"youtube-dl.exe";
+            singleDownload.StartInfo.FileName = @"yt-dlp.exe";
             if (canConvert)
             {
                 arguments = "--extract-audio --audio-format mp3 " + "-o \"" + Path.Combine(Wer.tempDirectoy, videoID + ".%(ext)s"/*, "%(title)s - %(id)s.%(ext)s"*/) + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";

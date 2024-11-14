@@ -147,9 +147,9 @@ class OnlineResource
         ),
         new OnlineResource
         (
-            "https://rg3.github.io/youtube-dl/",
-            Shared.resourcesWebsiteURL + "youtube-dl.exe",
-            Path.Combine("youtube-dl.exe"),
+            "https://github.com/yt-dlp/yt-dlp",
+            Shared.resourcesWebsiteURL + "yt-dlp.exe",
+            Path.Combine("yt-dlp.exe"),
             false,
             false
         )

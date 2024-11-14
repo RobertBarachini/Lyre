@@ -21,7 +21,7 @@ My ultimate goal is to create an open-source all-in-one music app. The end produ
 If you have any further questions or suggestions please do not hesitate to contact me. I am always ready to learn more!
 
 ## External programs / libraries used
-* [youtube-dl](https://rg3.github.io/youtube-dl/)
+* [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 * [FFmpeg](https://www.ffmpeg.org/)
 * [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json/)
 * [TagLib#](https://www.nuget.org/packages/taglib/)

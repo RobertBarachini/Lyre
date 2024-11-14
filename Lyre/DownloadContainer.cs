@@ -575,14 +575,20 @@ class DownloadContainer : CcPanel
         {
             if (canConvert)
             {
+								// TODO: Move to yt-dlp native extraction?
+								//   pros: single process, simpler
+								//   cons: can't follow progress, etc.
                 //arguments = "--extract-audio --audio-format mp3 " + "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
                 arguments = "--extract-audio " + "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json --audio-quality 0";
             }
             else
             {
-                arguments = "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json -f bestvideo[height<=?" + Shared.getVideoQualityStringPure(downloadContext.videoQualitySelector) + "][fps<=?" + Shared.getVideoFrameRatePure(downloadContext.framerateSelector) + "]+bestaudio";
+                // NOTE 2024-11-13: videos which have 60 fps option don't come with 30 fps stream so we may need to run conversion after the fact - currently not supported
+                string videoQualityString = Shared.getVideoQualityStringPure(downloadContext.videoQualitySelector);
+                arguments = "-o \"" + Path.Combine(Shared.preferences.tempDirectoy, videoID + ".%(ext)s") + "\" " + url + " --write-thumbnail --write-info-json -f bv*[height<=?" + videoQualityString + "]+ba";
+
             }
-            singleDownload.StartInfo.FileName = @"youtube-dl.exe";
+            singleDownload.StartInfo.FileName = @"yt-dlp.exe";
             singleDownload.StartInfo.Arguments = arguments;
             singleDownload.StartInfo.CreateNoWindow = true;
             singleDownload.StartInfo.UseShellExecute = false;
@@ -627,7 +633,7 @@ class DownloadContainer : CcPanel
                 progress = perc / 100d;
                 //updateProgress(perc / 100d);
             }
-            else if (data.Contains("[info]"))
+            else if (data.Contains("[info]") && !data.Contains("Writing video thumbnail"))
             {
                 string path = Path.Combine(Shared.preferences.tempDirectoy, videoID + ".info.json");
                 while (System.IO.File.Exists(path) == false)
@@ -641,14 +647,15 @@ class DownloadContainer : CcPanel
                     this.title.Text = infoJSON.GetValue("fulltitle").ToString();
                 });
             }
-            else if (data.Contains("Writing thumbnail to: "))
+            else if (data.Contains("Writing video thumbnail"))
             {
                 if(Directory.Exists(Shared.thumbnailsDirecotory) == false)
                 {
                     Directory.CreateDirectory(Shared.thumbnailsDirecotory);
                 }
 
-                string fileURL = infoJSON["thumbnail"].ToString();//infoJSON["thumbnails"].First["url"].ToString();
+                //string fileURL = infoJSON["thumbnail"].ToString();//infoJSON["thumbnails"].First["url"].ToString();
+                string fileURL = data.Substring(data.IndexOf("to:") + 4);
                 //int maxRes = -1;
                 //// Get the highest quality jpg, otherwise choose the webp
                 //foreach (JObject thumbnail in infoJSON["thumbnails"])
@@ -709,9 +716,9 @@ class DownloadContainer : CcPanel
             {
                 dlOutputPath = data.Substring("[download] Destination: ".Length);
             }
-            else if(data.Contains("[ffmpeg] Merging formats into"))
+            else if(data.Contains("[Merger] Merging formats into"))
             {
-                dlOutputPath = data.Substring("[ffmpeg] Merging formats into \"".Length);
+                dlOutputPath = data.Substring("[Merger] Merging formats into \"".Length);
                 dlOutputPath = dlOutputPath.Substring(0, dlOutputPath.Length - 1);
                 infoJSON["ext"] = dlOutputPath.Substring(dlOutputPath.LastIndexOf(".") + 1);
             }
@@ -726,6 +733,10 @@ class DownloadContainer : CcPanel
                 //finishProcess();
                 //reportDownloadError("❌ ERROR - Cannot download video - check video source");
                 singleDownload.Kill();
+            }
+            else if(data.Contains("[ExtractAudio]"))
+            {
+                dlOutputPath = data.Substring("[ExtractAudio] Destination: ".Length);
             }
             else
             {
